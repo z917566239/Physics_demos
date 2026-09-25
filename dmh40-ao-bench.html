@@ -1,0 +1,1959 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DMH40 AO Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" data-keep>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-keep>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" data-keep>
+<style id="ao-style">
+:root{
+  --bg:#EBEFED; --panel:#F8FAF9; --panel2:#F1F4F3; --ink:#131B1A; --muted:#58706B; --faint:#8A9B97; --rule:#CCD5D2; --rule2:#DEE4E2;
+  --accent:#2A4DB3; --accent-ink:#FFFFFF; --accent-soft:rgba(42,77,179,.12);
+  --ok:#17784F; --warn:#A8690F; --bad:#BF3A2B;
+  --screen:#07090A; --screen-ink:#D6DEDC; --screen-rule:#1F2A28;
+  --hole:rgba(19,27,26,.09);
+  --f-ui:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-lab:"Barlow Semi Condensed","Barlow","Arial Narrow",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --f-prose:"Source Serif 4",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1211; --panel:#141B1A; --panel2:#18201F; --ink:#E1E8E6; --muted:#8FA39E; --faint:#62736F; --rule:#27322F; --rule2:#1F2927;
+    --accent:#8AA4FF; --accent-ink:#0B1020; --accent-soft:rgba(138,164,255,.14);
+    --ok:#3DC48A; --warn:#E3AA4B; --bad:#F06B5B;
+    --screen:#050707; --screen-ink:#D6DEDC; --screen-rule:#1C2624;
+    --hole:rgba(225,232,230,.07);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1211; --panel:#141B1A; --panel2:#18201F; --ink:#E1E8E6; --muted:#8FA39E; --faint:#62736F; --rule:#27322F; --rule2:#1F2927;
+  --accent:#8AA4FF; --accent-ink:#0B1020; --accent-soft:rgba(138,164,255,.14);
+  --ok:#3DC48A; --warn:#E3AA4B; --bad:#F06B5B;
+  --screen:#050707; --screen-ink:#D6DEDC; --screen-rule:#1C2624;
+  --hole:rgba(225,232,230,.07);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.4;}
+.wrap{max-width:1480px;margin:0 auto;padding-inline:16px;padding-block:18px 56px}
+h1,h2,h3{font-family:var(--f-lab);font-weight:600;letter-spacing:.005em;text-wrap:balance;margin:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--rule);margin-bottom:16px}
+.top h1{font-size:30px;line-height:1.05;font-weight:700}
+.top h1 small{font-weight:500;color:var(--muted);font-size:15px;letter-spacing:.04em;margin-left:10px;text-transform:uppercase}
+.top p{margin:6px 0 0;color:var(--muted);max-width:70ch}
+.hdr-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.status{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--f-mono);font-size:12px;padding:4px 8px;border:1px solid var(--rule);border-radius:4px;background:var(--panel);color:var(--muted);white-space:nowrap}
+.chip b{color:var(--ink);font-weight:500}
+
+.btn{border:1px solid var(--rule);background:var(--panel);border-radius:5px;padding:7px 12px;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:7px;line-height:1.1}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn[disabled]{opacity:.5;cursor:default}
+.loopbtn{min-width:150px;justify-content:center;font-family:var(--f-lab);font-weight:600;font-size:15px;letter-spacing:.03em}
+.led{width:9px;height:9px;border-radius:50%;background:var(--faint);box-shadow:0 0 0 2px var(--panel)}
+.loopbtn.on .led{background:var(--ok);box-shadow:0 0 0 2px var(--panel),0 0 8px var(--ok)}
+
+/* layout */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:16px;align-items:start}
+.maincol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.ph h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.ph .v{font-family:var(--f-mono);font-size:12px;color:var(--ink);white-space:nowrap}
+.ph .sub{font-size:12px;color:var(--faint)}
+.scrollx{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+#cvLayout{display:block;width:100%;min-width:760px;aspect-ratio:1000/350}
+.bench{padding-bottom:6px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid currentColor;vertical-align:middle;margin-right:5px}
+
+.panels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.panels .card{padding:10px}
+.mapc{display:block;width:100%;aspect-ratio:1/1;border-radius:4px}
+.cbar{display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:6px}
+.cbar canvas{flex:1;height:8px;min-width:0;border-radius:2px}
+.cap{font-size:12px;color:var(--muted);margin-top:6px}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:2px 0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+
+.row2{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:12px}
+.wfsc{display:block;width:100%;aspect-ratio:1/1;border-radius:4px;background:var(--screen)}
+.banner{font-size:12.5px;padding:7px 9px;border-radius:4px;margin-top:8px;border:1px solid}
+.banner.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.banner.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent);background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.perf{display:flex;flex-direction:column;gap:10px}
+#cvChart{display:block;width:100%;height:250px}
+#cvFsm{display:block;width:100%;height:118px}
+.nowgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stat{border:1px solid var(--rule2);border-radius:5px;padding:7px 9px;background:var(--panel2)}
+.stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-family:var(--f-lab);font-weight:600}
+.stat .n{font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .d{font-size:11.5px;color:var(--muted);font-family:var(--f-mono)}
+.budget{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 22px}
+.budget h4{grid-column:1/-1;margin:4px 0 0;font-family:var(--f-lab);font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:2px}
+.grp{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px 12px 12px}
+.grp h2{font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.grp h2 .hw{font-family:var(--f-mono);font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint)}
+.ctl{margin:9px 0 0}
+.ctl .lr{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.ctl .lr label{color:var(--muted)}
+.ctl .lr output,.ctl .lr .val{font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.ctl input[type=range]{width:100%;accent-color:var(--accent);margin:4px 0 0}
+.ctl .hint{font-size:11.5px;color:var(--faint);margin-top:1px;font-family:var(--f-mono)}
+.seg{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;margin-top:4px}
+.seg button{flex:1;border:0;background:transparent;padding:5px 4px;font-size:12.5px;cursor:pointer;border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.presets{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.presets button{border:1px solid var(--rule);background:transparent;border-radius:4px;padding:2px 7px;font-size:12px;font-family:var(--f-mono);cursor:pointer}
+.presets button:hover{border-color:var(--faint)}
+select{width:100%;margin-top:4px;padding:5px 6px;border:1px solid var(--rule);border-radius:5px;background:var(--panel2)}
+.chk{display:flex;gap:7px;align-items:flex-start;font-size:12.5px;margin-top:9px;color:var(--muted)}
+.chk input{accent-color:var(--accent);margin-top:2px}
+.calbox{margin-top:10px;padding:8px;border-radius:5px;background:var(--panel2);border:1px solid var(--rule2);font-size:12.5px}
+.calbox .mono{font-size:12px}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+/* why section */
+.why h2{font-size:22px;margin-bottom:10px}
+.why .lede{color:var(--muted);margin:0 0 12px;max-width:80ch}
+.whygrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px}
+.conjfig{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--rule2)}
+.prose{font-family:var(--f-prose);font-size:15.5px;line-height:1.55;max-width:66ch}
+.prose p{margin:0 0 10px}
+.prose ul{margin:0 0 10px;padding-left:20px}
+.prose li{margin-bottom:6px}
+.prose b{font-weight:600}
+.prose .eq{font-family:var(--f-mono);font-size:13.5px;background:var(--panel2);padding:1px 5px;border-radius:3px;white-space:nowrap}
+#cvConj{display:block;width:100%;aspect-ratio:1000/300;min-width:680px}
+#cvTF{display:block;width:100%;height:210px}
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:12px}
+.scen button{text-align:left;border:1px solid var(--rule);background:var(--panel2);border-radius:6px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.scen button:hover{border-color:var(--accent)}
+.scen button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.scen b{font-family:var(--f-lab);font-size:14.5px;font-weight:600}
+.scen span{font-size:12.5px;color:var(--muted)}
+.conjnums{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:12.5px;margin-top:8px}
+.conjnums span:nth-child(odd){color:var(--muted)}
+.conjnums span:nth-child(even){font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.loading{margin:6px 0 0;font-size:12.5px;color:var(--muted);font-family:var(--f-mono)}
+.hint2{font-size:11.5px;color:var(--faint);margin-top:2px;line-height:1.35}
+.fixrow{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12.5px;color:var(--muted)}
+.fixrow input{width:84px;padding:4px 6px;border:1px solid var(--rule);border-radius:5px;background:var(--panel2);font-family:var(--f-mono);font-size:12.5px}
+.fixrow.off{opacity:.45}
+.fsmd summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-family:var(--f-lab);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.fsmd[open] summary{margin-bottom:6px}
+.notes summary{cursor:pointer;font-family:var(--f-lab);font-weight:600;font-size:15px;letter-spacing:.03em}
+.notes ul{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.5;max-width:110ch}
+.notes li{margin-bottom:5px}
+.notes b{color:var(--ink);font-weight:600}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:5px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:5}
+.toast.show{opacity:.94}
+
+@media (max-width:1180px){
+  .layout{display:flex;flex-direction:column}
+  .maincol{display:contents}
+  .bench{order:1} .panels{order:2} .row2{order:3} .rail{order:4} .why{order:5} .notes{order:6}
+  .rail{position:static;max-height:none;overflow:visible;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+}
+@media (max-width:900px){
+  .panels{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row2,.whygrid{grid-template-columns:minmax(0,1fr)}
+  .nowgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:480px){
+  .top h1{font-size:25px}
+  .budget{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){ .toast{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+<header class="top">
+  <div>
+    <h1>DMH40 AO Bench <small>live model</small></h1>
+    <p>A beam distorted by the lab turbulence chamber passes a PI S-330 tip/tilt mirror (steered by a 1 kHz camera loop), a Thorlabs DMH40 unimorph DM, a two-lens beam reducer and a beam splitter to a WFS20-5C Shack–Hartmann (DM loop up to 190 Hz) and a camera.</p>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn loopbtn" id="btnLoop" aria-pressed="false"><span class="led"></span><span id="loopTxt">Loop open</span></button>
+    <button class="btn" id="btnRun" aria-pressed="true">Pause</button>
+    <button class="btn" id="btnStep" title="Advance one DM loop frame">Step frame</button>
+    <button class="btn" id="btnDl" hidden>Download HTML</button>
+    <div class="status">
+      <span class="chip">t <b id="stT">0.000 s</b></span>
+      <span class="chip">frame <b id="stF">0</b></span>
+      <span class="chip">speed <b id="stRate">0.10×</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<div class="maincol">
+
+  <section class="card bench" aria-label="Optical path">
+    <div class="ph"><h3>Optical path</h3><span class="sub">fold angles schematic · DM→WFS axis to scale · wavefront ripples exaggerated</span></div>
+    <div class="scrollx"><canvas id="cvLayout"></canvas></div>
+    <div class="legend">
+      <span><i style="color:var(--accent);border-top-style:dashed"></i>control loops</span>
+      <span id="legBeam"><i></i>beam</span>
+      <span>ripples on the beam: 1-D cut through the wavefront, before and after the DM</span>
+    </div>
+    <p class="loading" id="loading">Building the DM model and the chamber turbulence…</p>
+  </section>
+
+  <section class="panels" aria-label="Live views">
+    <div class="card">
+      <div class="ph"><h3>Arriving at DM</h3><span class="v" id="vIn">— nm</span></div>
+      <canvas class="mapc" id="cvIn"></canvas>
+      <div class="cbar"><span id="cbInMin">−</span><canvas id="cbIn"></canvas><span id="cbInMax">+</span></div>
+      <div class="cap">OPD after the FSM, piston and tip/tilt removed, shown where the beam has light. Dashed: 1/e² beam.</div>
+    </div>
+    <div class="card">
+      <div class="ph"><h3>DM surface</h3><span class="v" id="vDM">—</span></div>
+      <canvas class="mapc" id="cvDM"></canvas>
+      <div class="cbar"><span id="cbDMMin">−</span><canvas id="cbDM"></canvas><span id="cbDMMax">+</span></div>
+      <div class="cap" id="capDM">40 electrode segments: 24 inside the 14 mm pupil, 16 outside it.</div>
+    </div>
+    <div class="card">
+      <div class="ph"><h3>Residual after DM</h3><span class="v" id="vRes">— nm</span></div>
+      <canvas class="mapc" id="cvRes"></canvas>
+      <div class="cbar"><span id="cbResMin">−</span><canvas id="cbRes"></canvas><span id="cbResMax">+</span></div>
+      <div class="cap">Arriving wavefront minus twice the DM surface, same colour scale. What remains is finer than the controlled modes, or changed since the last update.</div>
+    </div>
+    <div class="card">
+      <div class="ph"><h3>Camera · far field</h3><span class="v" id="vCam">S —</span></div>
+      <canvas class="mapc" id="cvCam" style="background:var(--screen)"></canvas>
+      <div class="cbar"><span id="camScaleTxt" style="flex:1">±8 λ/D</span><span id="camExpTxt">short exposure</span></div>
+      <div class="cap">Perfect camera behind a focusing lens; also the FSM's 1 kHz tilt sensor. Full scale = unaberrated peak.</div>
+    </div>
+  </section>
+
+  <section class="row2">
+    <div class="card">
+      <div class="ph"><h3>WFS20-5C spot field</h3><span class="v" id="vWfs">— valid</span></div>
+      <canvas class="wfsc" id="cvWfs"></canvas>
+      <div class="seg" id="segWz" style="margin-top:6px"><button data-v="beam" aria-pressed="true">Zoom to beam</button><button data-v="full" aria-pressed="false">Full 5.4 mm sensor</button></div>
+      <div class="cap" id="capWfs">35 × 35 lenslets, 150 µm pitch. Blue lines: the DM's electrode rings and spokes where they land on the lenslets. Spot shifts magnified.</div>
+      <div id="wfsBanner"></div>
+    </div>
+    <div class="card perf">
+      <div class="ph" style="margin-bottom:0"><h3>Loop performance</h3><span class="sub">last 1 s of simulated time · shaded = loop open</span></div>
+      <div class="nowgrid">
+        <div class="stat"><div class="l">Strehl</div><div class="n" id="nS">—</div><div class="d" id="nSd">on-axis</div></div>
+        <div class="stat"><div class="l">Before DM</div><div class="n" id="nB">—</div><div class="d">rms, tip/tilt removed</div></div>
+        <div class="stat"><div class="l">After DM</div><div class="n" id="nR">—</div><div class="d" id="nRd">rms, tip/tilt removed</div></div>
+        <div class="stat"><div class="l">FSM</div><div class="n" id="nF">—</div><div class="d" id="nFd">of ±5 mrad</div></div>
+      </div>
+      <canvas id="cvChart"></canvas>
+      <details class="fsmd" id="fsmDetails">
+        <summary>FSM response (last 20 ms, 1.6 kHz resonance)</summary>
+        <canvas id="cvFsm"></canvas>
+      </details>
+      <div class="budget" id="budget"></div>
+    </div>
+  </section>
+
+  <section class="card why" id="why">
+    <h2>Why the WFS must be conjugate to the DM</h2>
+    <div class="conjfig">
+      <div class="scrollx"><canvas id="cvConj"></canvas></div>
+      <p class="cap">Beams leave the DM at three tilts (the blue one sweeps). The reducer brings all of them back to the same footprint only at the DM image plane (green). The bars beside the WFS compare the sweeping beam's footprint with the untilted one.</p>
+    </div>
+    <div class="whygrid">
+      <div class="prose">
+        <p>L1 and L2 image the DM onto one plane behind L2. Only there does each lenslet see the same patch of the DM for every beam angle, so the slopes the WFS measures are the slopes the DM made.</p>
+        <p>An error <span class="eq">Δz<sub>W</sub></span> at the WFS equals <span class="eq">Δz<sub>W</sub>/M²</span> at the DM, which is 39× for the 100 → 16 mm pair. Over that distance the beam walks with any tilt, and its phase ripples partly turn into intensity ripples (scintillation). Once the WFS reads a controlled mode with the wrong sign, the integrator pushes that mode further every frame and the loop runs away. Recalibrating at the wrong plane doesn't help, because calibration uses a flat beam and it is the turbulence that scintillates.</p>
+        <p>The loop holds while the Fresnel scale <span class="eq">√(λΔz<sub>DM</sub>)</span> stays below r₀, so <span class="eq">|Δz<sub>W</sub>| ≲ M²r₀²/λ</span>. Stronger turbulence tightens this. A longer wavelength (r₀ grows as λ<sup>6/5</sup>) or a larger M relaxes it.</p>
+      </div>
+      <div>
+        <div class="conjnums" id="conjNums"></div>
+        <div class="scen" id="scen">
+          <button data-s="conj"><b>At the image plane</b><span>Reference.</span></button>
+          <button data-s="p100"><b>WFS 100 mm too far</b><span>Just inside the limit: small Strehl loss.</span></button>
+          <button data-s="p150"><b>WFS 150 mm too far</b><span>Converges briefly, then runs away.</span></button>
+          <button data-s="strong"><b>r₀ = 1.2 mm, 100 mm off</b><span>Stronger turbulence breaks the same offset.</span></button>
+          <button data-s="m375"><b>150 mm off, 200 → 75 mm pair</b><span>M² is 5.5× larger. Works.</span></button>
+        </div>
+        <p class="cap" style="margin-top:8px">Scenarios keep the interaction matrix from the image plane, as if the WFS was moved after calibration.</p>
+      </div>
+    </div>
+  </section>
+
+  <details class="card notes">
+    <summary>Model notes and assumptions</summary>
+    <ul>
+      <li><b>Turbulence (lab chamber).</b> The chamber's path-integrated phase is represented as one equivalent layer: von Kármán statistics with outer scale L₀ = 8 cm and inner scale l₀ = 1 mm (as in the chamber model). The crosswind carries it across the beam (Taylor frozen flow at speed v, f<sub>G</sub> = 0.427 v/r₀). The chamber is upstream of the FSM and not conjugate to the DM, but the ~0.5 m path to the DM (assumed) is neglected: √(λL) ≈ 0.6 mm is well below r₀, so scintillation at the DM is weak. OPD is achromatic, so the r₀ and f<sub>G</sub> sliders read at the laser wavelength and move when λ changes. With air crossing the beam at ~1 m/s, f<sub>G</sub> would be ~200 Hz at r₀ = 2 mm, far beyond what a 190 Hz loop can follow. The default flow is slow so the loop has something to win.</li>
+      <li><b>FSM (PI S-330).</b> Corrects all tip/tilt, closed on the camera's centroid at 1 kHz (gain slider). Second-order plant, f<sub>n</sub> = 1.6 kHz, ζ = 0.15 (assumed), ±5 mrad mechanical (10 mrad range), 1″ mirror, 150 mm before the DM (assumed). The DM loop never sees tip/tilt; any tilt the DM happens to make is taken out by the FSM.</li>
+      <li><b>DM (DMH40, from the manual).</b> Unimorph piezo mirror, Ø18 mm, 17 mm optical aperture, 14 mm pupil. 40 segments: 8 inner sectors, 16 in the second ring (both inside the pupil) and 16 outside the pupil, numbered as in the manual. The inner-ring radius (3.9 mm) is read off the drawing. Each segment's command is (V − 150 V)/150 V, clamped to ±1. The surface comes from a thin plate with a piezo bending moment and a free rim (the 3 mounting joints only fix piston and tilt). It is scaled so all segments at full command give the manual's ±17.6 µm defocus. It reproduces the manual's spherical and secondary-astigmatism strokes and gives about half its astigmatism and coma. Hysteresis (compensated in Thorlabs' driver), creep, the 0.5 ms response and the 200 nm rms open-loop figure are not modelled.</li>
+      <li><b>WFS (WFS20-5C).</b> 35 × 35 lenslets, 150 µm pitch, lenslet focal length 5.2 mm (assumed), 5 µm pixels. Each spot centroid is the intensity-weighted mean phase gradient over its lenslet, which is exact for the far-field centroid. Dynamic range is p/2 − λf/p, centroid noise ~1/50 pixel at full signal, and lenslets below 5 % of calibration intensity are dropped. The silicon cutoff near 1.1 µm is ignored by default.</li>
+      <li><b>Reducer and propagation.</b> Thin lenses separated by f₁ + f₂. DM image plane at f₂ + M²(f₁ − d₁) behind L2, plus 3.4 mm for a 10 mm N-BK7 cube. From that plane to the lenslets the field is propagated with a band-limited angular spectrum on a 128² (0.2 mm) or 256² (0.1 mm) grid in DM coordinates. Image inversion by the Keplerian pair is ignored in the displays.</li>
+      <li><b>DM loop.</b> One WFS sample per frame. The DM updates 1.5 frames later, about 2 frames of total delay. Leaky integrator; zonal reconstructor from push-pull pokes, keeping the strongest N system modes (SVD of the tip/tilt-filtered interaction matrix). The simulation slows itself down when the browser can't keep up; the speed chip shows the actual rate.</li>
+      <li><b>Camera.</b> Perfect. Far field from a matrix Fourier transform of the residual field; Strehl = on-axis intensity relative to the unaberrated Gaussian beam.</li>
+      <li><b>Assumed, not from datasheets.</b> Lenslet focal length, FSM damping, component spacings, the plate's Poisson ratio (0.25).</li>
+    </ul>
+  </details>
+</div>
+
+<aside class="rail" aria-label="Controls">
+  <div class="grp">
+    <h2>Simulation</h2>
+    <div class="ctl"><div class="lr"><label for="selSpeed">Time scale</label><span class="val" id="oSpeedAct">—</span></div>
+      <select id="selSpeed">
+        <option value="1">1× real time</option>
+        <option value="0.3">0.3×</option>
+        <option value="0.1" selected>0.1× (slow motion)</option>
+        <option value="0.03">0.03×</option>
+        <option value="0.01">0.01× (watch each frame)</option>
+      </select>
+    </div>
+    <div class="btnrow">
+      <button class="btn sm" id="btnNewTurb">New turbulence</button>
+      <button class="btn sm" id="btnFlat">Flatten DM</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>DM loop <span class="hw">max 190 Hz</span></h2>
+    <div class="ctl"><div class="lr"><label for="rngRate">Loop rate</label><output id="oRate">190 Hz</output></div>
+      <input type="range" id="rngRate" min="10" max="190" step="5" value="190"></div>
+    <div class="ctl"><div class="lr"><label for="rngGain">Integrator gain</label><output id="oGain">0.40</output></div>
+      <input type="range" id="rngGain" min="0" max="1.2" step="0.05" value="0.4"></div>
+    <div class="ctl"><div class="lr"><label for="rngLeak">Leak</label><output id="oLeak">0.990</output></div>
+      <input type="range" id="rngLeak" min="0.9" max="1" step="0.005" value="0.99">
+      <div class="hint2">Each frame the stored DM command is multiplied by this before the new correction is added (c ← leak·c − g·Δc). Below 1, shapes the WFS can't see fade away instead of piling up. 1 is a pure integrator.</div></div>
+    <div class="ctl"><div class="lr"><label for="rngModes">Modes controlled</label><output id="oModes">10</output></div>
+      <input type="range" id="rngModes" min="1" max="40" step="1" value="10">
+      <div class="hint2" id="hModes">The strongest system modes of the interaction matrix (tip/tilt excluded). Weak modes amplify noise and aliasing.</div></div>
+    <h2 style="margin-top:14px">FSM loop <span class="hw">camera · 1 kHz</span></h2>
+    <div class="ctl"><div class="lr"><label for="rngTTG">FSM gain</label><output id="oTTG">0.50</output></div>
+      <input type="range" id="rngTTG" min="0" max="1" step="0.05" value="0.5"></div>
+  </div>
+
+  <div class="grp">
+    <h2>Source &amp; chamber</h2>
+    <div class="ctl"><div class="lr"><label for="rngLam">Wavelength</label><output id="oLam">795 nm</output></div>
+      <input type="range" id="rngLam" min="400" max="1650" step="1" value="795">
+      <div class="presets" id="lamPresets"><button data-l="532">532</button><button data-l="633">633</button><button data-l="795">795</button><button data-l="1064">1064</button><button data-l="1550">1550</button></div></div>
+    <div class="ctl"><div class="lr"><label for="rngBeam">Beam diameter at DM (1/e²)</label><output id="oBeam">10.0 mm</output></div>
+      <input type="range" id="rngBeam" min="2" max="16" step="0.5" value="10">
+      <div class="hint" id="hBeam"></div></div>
+    <div class="ctl"><div class="lr"><label for="rngR0">Distortion strength r₀</label><output id="oR0">2.0 mm</output></div>
+      <input type="range" id="rngR0" min="0" max="1000" step="1" value="0">
+      <div class="hint" id="hR0"></div></div>
+    <div class="ctl"><div class="lr"><label for="rngFG">Distortion frequency f<sub>G</sub></label><output id="oFG">8 Hz</output></div>
+      <input type="range" id="rngFG" min="0" max="1000" step="1" value="0">
+      <div class="hint" id="hFG"></div></div>
+    <label class="chk"><input type="checkbox" id="chkTurb" checked> Chamber turbulence on</label>
+    <label class="chk"><input type="checkbox" id="chkQE" checked> Ignore the WFS's silicon cutoff (~1.1 µm)</label>
+  </div>
+
+  <div class="grp">
+    <h2>Reducer &amp; WFS position</h2>
+    <div class="ctl"><div class="lr"><label for="selRed">Lens pair L1 → L2</label><span class="val" id="oM">M = 0.160</span></div>
+      <select id="selRed"></select>
+      <div class="hint" id="hRed"></div></div>
+    <div class="ctl"><div class="lr"><label for="rngD1">DM → L1</label><output id="oD1">100 mm</output></div>
+      <input type="range" id="rngD1" min="20" max="300" step="1" value="100"></div>
+    <div class="ctl"><div class="lr"><label for="rngD2">L2 → WFS lenslets</label><output id="oD2">— mm</output></div>
+      <input type="range" id="rngD2" min="4" max="320" step="0.5" value="19.4">
+      <div class="hint" id="hD2"></div></div>
+    <div class="btnrow"><button class="btn sm" id="btnSnap">Put WFS at DM image plane</button></div>
+    <div class="calbox" id="calBox">
+      <div id="calTxt">Interaction matrix: —</div>
+      <div class="btnrow"><button class="btn sm primary" id="btnRecal">Recalibrate here</button></div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Display</h2>
+    <div class="ctl"><div class="lr"><label>Wavefront colour scale</label></div>
+      <div class="seg" id="segWf"><button data-v="auto" aria-pressed="true">Auto</button><button data-v="fixed" aria-pressed="false">Fixed</button></div>
+      <div class="fixrow" id="fixRow"><label for="numWf">±</label><input type="number" id="numWf" min="10" max="5000" step="10" value="300"><span>nm, all three maps</span></div></div>
+    <div class="ctl"><div class="lr"><label>WFS spot shift magnification</label></div>
+      <div class="seg" id="segMag"><button data-v="1" aria-pressed="false">×1</button><button data-v="10" aria-pressed="true">×10</button></div></div>
+    <div class="ctl"><div class="lr"><label>Camera exposure</label></div>
+      <div class="seg" id="segExp"><button data-v="short" aria-pressed="true">Short</button><button data-v="long" aria-pressed="false">Long (averaging)</button></div></div>
+    <div class="ctl"><div class="lr"><label>Camera scale</label></div>
+      <div class="seg" id="segCs"><button data-v="gamma" aria-pressed="true">√ intensity</button><button data-v="lin" aria-pressed="false">Linear</button><button data-v="log" aria-pressed="false">Log</button></div></div>
+  </div>
+</aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+<script id="ao-engine">
+/* AO bench physics engine: turbulence -> FSM -> DM -> afocal reducer -> SH-WFS (+ camera).
+   Units: lengths in mm, OPD in nm, angles in rad, time in s, DM surface in um. */
+(function (global) {
+'use strict';
+
+// ---------------- FFT (radix-2, in place, unnormalised) ----------------
+function FFT(n) {
+  this.n = n;
+  const lv = Math.round(Math.log2(n));
+  this.rev = new Uint32Array(n);
+  for (let i = 0; i < n; i++) { let r = 0, x = i; for (let b = 0; b < lv; b++) { r = (r << 1) | (x & 1); x >>= 1; } this.rev[i] = r; }
+  this.c = new Float64Array(n >> 1); this.s = new Float64Array(n >> 1);
+  for (let i = 0; i < n >> 1; i++) { this.c[i] = Math.cos(2 * Math.PI * i / n); this.s[i] = Math.sin(2 * Math.PI * i / n); }
+}
+FFT.prototype.run = function (re, im, inv) {
+  const n = this.n, rev = this.rev, C = this.c, Sn = this.s, sg = inv ? 1 : -1;
+  for (let i = 0; i < n; i++) { const j = rev[i]; if (j > i) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+  for (let size = 2; size <= n; size <<= 1) {
+    const half = size >> 1, step = n / size;
+    for (let i = 0; i < n; i += size) {
+      for (let j = 0, k = 0; j < half; j++, k += step) {
+        const wr = C[k], wi = sg * Sn[k], a = i + j, b = a + half;
+        const xr = re[b] * wr - im[b] * wi, xi = re[b] * wi + im[b] * wr;
+        re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi;
+      }
+    }
+  }
+};
+function fft2(re, im, nx, ny, inv, fx, fy, tr, ti) {
+  for (let y = 0; y < ny; y++) { const o = y * nx; fx.run(re.subarray(o, o + nx), im.subarray(o, o + nx), inv); }
+  for (let x = 0; x < nx; x++) {
+    for (let y = 0; y < ny; y++) { tr[y] = re[y * nx + x]; ti[y] = im[y * nx + x]; }
+    fy.run(tr, ti, inv);
+    for (let y = 0; y < ny; y++) { re[y * nx + x] = tr[y]; im[y * nx + x] = ti[y]; }
+  }
+}
+
+// ---------------- RNG ----------------
+function rng(seed) {
+  let a = seed >>> 0;
+  const u = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  let spare = null;
+  u.gauss = () => { if (spare !== null) { const s = spare; spare = null; return s; } let x, y, r; do { x = 2 * u() - 1; y = 2 * u() - 1; r = x * x + y * y; } while (r >= 1 || r === 0); const f = Math.sqrt(-2 * Math.log(r) / r); spare = y * f; return x * f; };
+  return u;
+}
+
+// ---------------- Hardware + optics constants ----------------
+const HW = {
+  dmR: 8.5,            // DMH40 optical aperture radius (17 mm)
+  pupilR: 7.0,         // Zernike pupil radius (14 mm)
+  mirrorR: 9.0,        // mirror radius (18 mm)
+  nAct: 40,            // 24 electrodes inside the pupil, 16 outside
+  ringR: [0, 3.9, 7.0, 9.0], // electrode ring radii (inner radius 3.9 mm read off the manual drawing)
+  nu: 0.25,            // plate Poisson ratio (assumed)
+  defocusPV: 17.6,     // um surface PV over 14 mm with every segment at full command (manual)
+  stroke: 1.0,         // command limit (1 = +/-150 V about the 150 V flat point)
+  lensPitch: 0.150,    // WFS20-5C lenslet pitch (mm)
+  nLens: 35,           // 35 x 35 lenslets
+  sensor: 5.4,         // sensor size (mm)
+  fMLA: 5.2,           // assumed lenslet focal length (mm)
+  pixel: 0.005,        // WFS camera pixel (mm)
+  fsmRange: 5e-3,      // +/- 5 mrad mechanical (10 mrad range)
+  fsmFn: 1600,         // Hz
+  fsmZeta: 0.15,       // assumed damping
+  L_FSM_DM: 150,       // assumed FSM -> DM distance (mm)
+  bsT: 10, bsN: 1.515, // assumed 10 mm N-BK7 cube beam splitter between L2 and WFS
+  L0: 80,              // outer scale (mm), as in the chamber model
+  l0: 1.0              // inner scale (mm)
+};
+const REDUCERS = [
+  { f1: 100, f2: 16, label: '100 mm → 16 mm' },
+  { f1: 200, f2: 50, label: '200 mm → 50 mm' },
+  { f1: 150, f2: 50, label: '150 mm → 50 mm' },
+  { f1: 200, f2: 75, label: '200 mm → 75 mm' },
+  { f1: 250, f2: 100, label: '250 mm → 100 mm' }
+];
+
+// DMH40 electrode layout (manual sec. 2.2, view onto the mirror surface, y up):
+// ring 1 = segments 1-8 (45 deg sectors), ring 2 = 9-24 and ring 3 = 25-40 (22.5 deg sectors, ring 3 outside the pupil).
+// Segment k of a ring starts at 90 deg + k * 360/n and runs counter-clockwise.
+function segmentLayout() {
+  const R = HW.ringR, rings = [[8, R[0], R[1], 1], [16, R[1], R[2], 9], [16, R[2], R[3], 25]], out = [];
+  rings.forEach(([n, r0, r1, first], ring) => {
+    for (let k = 0; k < n; k++) {
+      const da = 2 * Math.PI / n, a0 = (Math.PI / 2 + k * da) % (2 * Math.PI), ac = a0 + da / 2;
+      const rc = r0 === 0 ? 0.62 * r1 : 0.5 * (r0 + r1);
+      out.push({ num: first + k, ring, n, r0, r1, a0, da, cx: rc * Math.cos(ac), cy: rc * Math.sin(ac) });
+    }
+  });
+  return out;
+}
+// Influence functions of the unimorph mirror: thin plate with a piezo-induced isotropic bending moment P (proportional to the
+// segment command), D lap^2 w = -lap P, free edge at the 18 mm rim (the 3 mounting joints only fix piston/tip/tilt).
+// Solved per angular harmonic m: D lap_m W = A r^m - P_m(r); free-edge conditions (M_rr = 0, Kirchhoff V_r = 0) fix A and B r^m.
+function buildIFMaster() {
+  const a = HW.mirrorR, nu = HW.nu, h = 0.15, NM = Math.round(2 * a / h) + 1, MM = 90, NR = 1201;
+  const R = HW.ringR.map((r) => r / a), spec = [[R[0], R[1], Math.PI / 4], [R[1], R[2], Math.PI / 8], [R[2], R[3], Math.PI / 8]];
+  const bases = [];
+  for (const [p0, p1, da] of spec) {
+    // radial responses W_m(rho) to a unit ring source f = -1 on [p0, p1)
+    const Wm = [];
+    for (let m = 0; m <= MM; m++) {
+      const f = -1;
+      const I1 = (r) => r <= p0 ? 0 : f * (Math.pow(Math.min(r, p1), m + 2) - Math.pow(p0, m + 2)) / (m + 2);
+      const I2 = (r) => { const lo = Math.max(r, p0); if (lo >= p1) return 0; return m === 2 ? f * Math.log(p1 / lo) : f * (Math.pow(p1, 2 - m) - Math.pow(lo, 2 - m)) / (2 - m); };
+      let Wp, Wp1, dWp1;
+      if (m === 0) {
+        Wp = (r) => {
+          if (r <= p0) return 0;
+          const seg = (x) => p0 > 0 ? f * ((x * x - p0 * p0) / 4 - p0 * p0 / 2 * Math.log(x / p0)) : f * x * x / 4;
+          if (r <= p1) return seg(r);
+          return seg(p1) + f * (p1 * p1 - p0 * p0) / 2 * Math.log(r / p1);
+        };
+        Wp1 = Wp(1); dWp1 = f * (p1 * p1 - p0 * p0) / 2;
+      } else {
+        Wp = (r) => r <= 0 ? 0 : -(1 / (2 * m)) * (Math.pow(r, -m) * I1(r) + Math.pow(r, m) * I2(r));
+        Wp1 = Wp(1); dWp1 = I1(1) / 2;
+      }
+      let A = 0, B = 0;
+      if (m === 0) A = 2 * (1 - nu) * dWp1 / (1 + nu);
+      else if (m === 1) A = (1 - nu) * (dWp1 - Wp1) / (1 - (1 - nu) / 4);
+      else {
+        const c = 4 * m + 4;
+        // eq1: Wp' + m Wp + A/2 + 2m B = 0 ; eq2: A - (1-nu)[Wp' - m^2 Wp + A((m+2) - m^2)/c + B(m - m^2)] = 0
+        const a11 = 0.5, a12 = 2 * m, b1 = -(dWp1 + m * Wp1);
+        const a21 = 1 - (1 - nu) * ((m + 2) - m * m) / c, a22 = -(1 - nu) * (m - m * m), b2 = (1 - nu) * (dWp1 - m * m * Wp1);
+        const det = a11 * a22 - a12 * a21; A = (b1 * a22 - a12 * b2) / det; B = (a11 * b2 - a21 * b1) / det;
+      }
+      const W = new Float64Array(NR);
+      for (let i = 0; i < NR; i++) { const r = i / (NR - 1); W[i] = Wp(r) + A * Math.pow(r, m + 2) / (4 * m + 4) + B * Math.pow(r, m); }
+      Wm.push(W);
+    }
+    const pc = [], ps = [];
+    for (let m = 0; m <= MM; m++) {
+      const damp = Math.exp(-Math.pow(m / (0.8 * MM), 4)); // soften Gibbs ringing of the truncated series
+      if (m === 0) { pc.push(da / (2 * Math.PI)); ps.push(0); }
+      else { pc.push(damp * Math.sin(m * da) / (m * Math.PI)); ps.push(damp * (1 - Math.cos(m * da)) / (m * Math.PI)); }
+    }
+    const w = new Float32Array(NM * NM);
+    for (let j = 0; j < NM; j++) for (let i = 0; i < NM; i++) {
+      const X = -a + i * h, Y = -a + j * h, r = Math.hypot(X, Y) / a; if (r > 1.0001) continue;
+      const th = Math.atan2(Y, X), fr = Math.min(1, r) * (NR - 1), k0 = Math.min(NR - 2, Math.floor(fr)), u = fr - k0;
+      let acc = 0;
+      for (let m = 0; m <= MM; m++) { const Wv = Wm[m][k0] * (1 - u) + Wm[m][k0 + 1] * u; acc += Wv * (pc[m] * Math.cos(m * th) + ps[m] * Math.sin(m * th)); }
+      w[j * NM + i] = acc;
+    }
+    bases.push(w);
+  }
+  // scale: all 40 segments at full command -> defocus of 17.6 um PV over the 14 mm pupil (manual). Uniform source: W = -rho^2 / (2(1+nu)).
+  const rp = HW.pupilR / a, K = HW.defocusPV / (rp * rp / (2 * (1 + nu)));
+  for (const w of bases) for (let i = 0; i < w.length; i++) w[i] *= K;
+  return { a, h, NM, bases };
+}
+let IFM = null;
+function ifValue(seg, x, y) { // rotate into the base sector frame, bilinear on the master grid
+  const c = Math.cos(-seg.a0), s = Math.sin(-seg.a0), X = x * c - y * s, Y = x * s + y * c;
+  const { a, h, NM } = IFM, base = IFM.bases[seg.ring];
+  if (X * X + Y * Y > a * a) return 0;
+  const fx = (X + a) / h, fy = (Y + a) / h, i = Math.min(NM - 2, Math.max(0, Math.floor(fx))), j = Math.min(NM - 2, Math.max(0, Math.floor(fy)));
+  const u = fx - i, v = fy - j, o = j * NM + i;
+  return (base[o] * (1 - u) + base[o + 1] * u) * (1 - v) + (base[o + NM] * (1 - u) + base[o + NM + 1] * u) * v;
+}
+
+// Relative silicon CMOS response (approximate) for WFS noise / cutoff
+function siQE(l) {
+  const T = [[350, 0.25], [400, 0.45], [500, 0.65], [550, 0.7], [600, 0.68], [700, 0.55], [800, 0.38], [900, 0.2], [1000, 0.06], [1050, 0.02], [1100, 0.0]];
+  if (l <= T[0][0]) return T[0][1];
+  for (let i = 1; i < T.length; i++) if (l <= T[i][0]) { const [a, qa] = T[i - 1], [b, qb] = T[i]; return qa + (qb - qa) * (l - a) / (b - a); }
+  return 0;
+}
+
+// Jacobi eigen-decomposition for symmetric n x n (row-major). Returns {vals, vecs(col k = eigvec k)}
+function jacobiEig(A, n) {
+  const a = Float64Array.from(A), v = new Float64Array(n * n);
+  for (let i = 0; i < n; i++) v[i * n + i] = 1;
+  for (let sweep = 0; sweep < 60; sweep++) {
+    let off = 0;
+    for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) off += a[p * n + q] * a[p * n + q];
+    if (off < 1e-22) break;
+    for (let p = 0; p < n; p++) for (let q = p + 1; q < n; q++) {
+      const apq = a[p * n + q]; if (Math.abs(apq) < 1e-300) continue;
+      const app = a[p * n + p], aqq = a[q * n + q];
+      const th = (aqq - app) / (2 * apq);
+      const t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1));
+      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < n; k++) {
+        const akp = a[k * n + p], akq = a[k * n + q];
+        a[k * n + p] = c * akp - s * akq; a[k * n + q] = s * akp + c * akq;
+      }
+      for (let k = 0; k < n; k++) {
+        const apk = a[p * n + k], aqk = a[q * n + k];
+        a[p * n + k] = c * apk - s * aqk; a[q * n + k] = s * apk + c * aqk;
+      }
+      for (let k = 0; k < n; k++) {
+        const vkp = v[k * n + p], vkq = v[k * n + q];
+        v[k * n + p] = c * vkp - s * vkq; v[k * n + q] = s * vkp + c * vkq;
+      }
+    }
+  }
+  const idx = [...Array(n).keys()].sort((i, j) => a[j * n + j] - a[i * n + i]);
+  const vals = new Float64Array(n), vecs = new Float64Array(n * n);
+  idx.forEach((src, k) => { vals[k] = a[src * n + src]; for (let r = 0; r < n; r++) vecs[r * n + k] = v[r * n + src]; });
+  return { vals, vecs };
+}
+
+// =====================================================================
+function createAO(opts) {
+  opts = opts || {};
+  const now = opts.now || (() => (typeof performance !== 'undefined' ? performance.now() : Date.now()));
+  const P = Object.assign({
+    lambda: 795, beamD: 10, r0: 2.0 * Math.pow(500 / 795, 1.2), fG: 8 * Math.pow(795 / 500, 1.2),
+    reducer: 0, d1: 100, d2: null,
+    loopHz: 190, gain: 0.4, leak: 0.99, modes: 10,
+    tt: 'fsm', ttSensor: 'cam', ttGain: 0.5, camHz: 1000,
+    closed: false, turbOn: true, ignoreQE: true, noise: true, delayFrames: 1.5, eigThr: 1e-5
+  }, opts.params || {});
+
+  const seg = segmentLayout();
+  const E = { P, HW, REDUCERS, seg, act: seg.map((q) => [q.cx, q.cy]), ifValue };
+  const S = {
+    t: 0, frame: 0, nextSample: 0, nextCam: 0, queue: [], camQueue: [],
+    c: new Float64Array(40), cCmd: new Float64Array(40),
+    th: [0, 0], vth: [0, 0], uA: [0, 0], uCmd: [0, 0],
+    trace: { n: 2400, t: new Float64Array(2400), u: new Float64Array(2400), th: new Float64Array(2400), i: 0, sub: 0 },
+    hist: [], meas: null, calib: null, surfDirty: true, busy: 0
+  };
+  E.S = S;
+
+  // ---------- turbulence screen ----------
+  const SW = 1024, SH = 1024, ds = 0.15;
+  let screen = null;
+  function genScreen(seed) {
+    const re = new Float64Array(SW * SH), im = new Float64Array(SW * SH);
+    const r = rng(seed), dfx = 1 / (SW * ds), dfy = 1 / (SH * ds), f0 = 1 / (HW.L0 * HW.L0), fm = 5.92 / (2 * Math.PI * HW.l0);
+    for (let ky = 0; ky < SH; ky++) {
+      const fy = (ky < SH / 2 ? ky : ky - SH) * dfy;
+      for (let kx = 0; kx < SW; kx++) {
+        if (kx === 0 && ky === 0) continue;
+        const fx = (kx < SW / 2 ? kx : kx - SW) * dfx;
+        const f2 = fx * fx + fy * fy, a = Math.sqrt(0.023 * Math.pow(f2 + f0, -11 / 6) * Math.exp(-f2 / (fm * fm)) * dfx * dfy);
+        re[ky * SW + kx] = a * r.gauss(); im[ky * SW + kx] = a * r.gauss();
+      }
+    }
+    fft2(re, im, SW, SH, true, new FFT(SW), new FFT(SH), new Float64Array(SH), new Float64Array(SH));
+    screen = new Float32Array(SW * SH);
+    for (let i = 0; i < SW * SH; i++) screen[i] = re[i];
+  }
+  E.genScreen = genScreen;
+  function scr(xmm, ymm) { // bilinear, wraps; returns rad @500nm for r0 = 1 mm
+    const X = xmm / ds, Y = ymm / ds;
+    const x0 = Math.floor(X), y0 = Math.floor(Y), fx = X - x0, fy = Y - y0;
+    const xa = x0 & (SW - 1), xb = (x0 + 1) & (SW - 1), ya = (y0 & (SH - 1)) * SW, yb = ((y0 + 1) & (SH - 1)) * SW;
+    return (screen[ya + xa] * (1 - fx) + screen[ya + xb] * fx) * (1 - fy) + (screen[yb + xa] * (1 - fx) + screen[yb + xb] * fx) * fy;
+  }
+  E.scr = scr;
+
+  // ---------- derived quantities ----------
+  function derived() {
+    const R = REDUCERS[P.reducer], M = R.f2 / R.f1;
+    const bsShift = HW.bsT * (1 - 1 / HW.bsN);
+    const zc = R.f2 + M * M * (R.f1 - P.d1) + bsShift; // DM image plane, measured from L2
+    const d2 = P.d2 == null ? zc : P.d2;
+    const dzW = d2 - zc, dzDM = dzW / (M * M);
+    const lam = P.lambda;
+    const r0l = P.r0 * Math.pow(lam / 500, 1.2);
+    const fGl = P.fG * Math.pow(500 / lam, 1.2);
+    const v = P.fG * P.r0 / 0.427; // mm/s (frozen flow)
+    const pDM = HW.lensPitch / M;
+    const Deff = Math.min(P.beamD, 2 * HW.dmR);
+    const qe = siQE(lam);
+    const spotR = lam * 1e-6 * HW.fMLA / HW.lensPitch; // mm, first zero radius on sensor
+    const dynR = Math.max(0, HW.lensPitch / 2 - spotR); // mm max spot displacement
+    return { R, M, zc, d2, dzW, dzDM, r0l, fGl, v, pDM, Deff, qe, spotR, dynR, bsShift, T: 1 / P.loopHz,
+      dOverR0: Deff / r0l, lamOverD: lam * 1e-6 / Deff, subapsAcross: Deff / pDM,
+      opdScale: Math.pow(P.r0, -5 / 6) * 500 / (2 * Math.PI) };
+  }
+  E.derived = derived;
+
+  // ---------- simulation grid ----------
+  const G = {};
+  E.G = G;
+  function setupGrid() {
+    if (!IFM) IFM = buildIFMaster();
+    if (!Dsp.ifd) buildDisplayIF();
+    const D = derived();
+    const dx = D.M <= 0.2 ? 0.2 : 0.1, N = D.M <= 0.2 ? 128 : 256;
+    Object.assign(G, { dx, N, M: D.M });
+    G.fft = new FFT(N); G.tr = new Float64Array(N); G.ti = new Float64Array(N);
+    G.re = new Float64Array(N * N); G.im = new Float64Array(N * N);
+    G.xc = new Float64Array(N); for (let i = 0; i < N; i++) G.xc[i] = (i - N / 2 + 0.5) * dx;
+    // aperture pixel list
+    const ap = [];
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const x = G.xc[i], y = G.xc[j]; if (x * x + y * y <= HW.dmR * HW.dmR) ap.push(j * N + i); }
+    G.ap = Int32Array.from(ap); G.nap = ap.length;
+    G.apx = new Float32Array(G.nap); G.apy = new Float32Array(G.nap);
+    for (let k = 0; k < G.nap; k++) { G.apx[k] = G.xc[G.ap[k] % N]; G.apy[k] = G.xc[(G.ap[k] / N) | 0]; }
+    G.amp = new Float32Array(G.nap);
+    G.surf = new Float64Array(G.nap);
+    // influence functions (dense: a curvature mirror's response covers the whole aperture)
+    G.ifd = seg.map((q) => { const d = new Float32Array(G.nap); for (let k = 0; k < G.nap; k++) d[k] = ifValue(q, G.apx[k], G.apy[k]); return d; });
+    // lenslet map (WFS-space coordinates x_w = M x)
+    const nL = HW.nLens, p = HW.lensPitch;
+    G.lens = new Int16Array(N * N).fill(-1);
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const jx = Math.floor(D.M * G.xc[i] / p + nL / 2), jy = Math.floor(D.M * G.xc[j] / p + nL / 2);
+      if (jx >= 0 && jx < nL && jy >= 0 && jy < nL) G.lens[j * N + i] = jy * nL + jx;
+    }
+    G.Sx = new Float64Array(nL * nL); G.Sy = new Float64Array(nL * nL); G.SI = new Float64Array(nL * nL);
+    G.H = null; G.Hkey = '';
+    setupBeam();
+    S.surfDirty = true;
+  }
+  function setupBeam() {
+    const w = P.beamD / 2;
+    let sw = 0, sa = 0, sxx = 0, syy = 0;
+    for (let k = 0; k < G.nap; k++) {
+      const r2 = G.apx[k] ** 2 + G.apy[k] ** 2, a = Math.exp(-r2 / (w * w));
+      G.amp[k] = a; sa += a; sw += a * a; sxx += a * a * G.apx[k] ** 2; syy += a * a * G.apy[k] ** 2;
+    }
+    G.sumA = sa; G.sumW = sw; G.varX = sxx / sw; G.varY = syy / sw;
+  }
+  E.setupGrid = setupGrid;
+
+  function updateSurf() {
+    const s = G.surf; s.fill(0);
+    for (let i = 0; i < 40; i++) {
+      const c = S.c[i]; if (c === 0) continue;
+      const d = G.ifd[i];
+      for (let k = 0; k < G.nap; k++) s[k] += c * d[k];
+    }
+    S.surfDirty = false;
+  }
+
+  // ---------- field at the DM output (DM plane) ----------
+  // mode: {turb:bool}. Fills G.re/G.im (whole grid zeroed first). Returns truth stats.
+  function buildField(t, turb, D) {
+    if (S.surfDirty) updateSurf();
+    const re = G.re, im = G.im; re.fill(0); im.fill(0);
+    const k = 2 * Math.PI / P.lambda, sc = D.opdScale, xo = D.v * t;
+    const thx = S.th[0], thy = S.th[1];
+    let sw = 0, so = 0, soo = 0, sxo = 0, syo = 0, cr = 0, ci = 0, bo = 0, boo = 0, bxo = 0, byo = 0;
+    for (let q = 0; q < G.nap; q++) {
+      const x = G.apx[q], y = G.apy[q];
+      const oin = (turb ? scr(x + xo, y + 25.6) * sc : 0) + 2e6 * (thx * x + thy * y);
+      const opd = oin - 2000 * G.surf[q];
+      { const w0 = G.amp[q] * G.amp[q]; bo += w0 * oin; boo += w0 * oin * oin; bxo += w0 * x * oin; byo += w0 * y * oin; }
+      const a = G.amp[q], ph = k * opd, cs = Math.cos(ph), sn = Math.sin(ph), p = G.ap[q];
+      re[p] = a * cs; im[p] = a * sn;
+      const w = a * a; sw += w; so += w * opd; soo += w * opd * opd; sxo += w * x * opd; syo += w * y * opd;
+      cr += a * cs; ci += a * sn;
+    }
+    const mean = so / sw, varT = soo / sw - mean * mean;
+    const cx = sxo / sw, cy = syo / sw; // mean x = 0
+    const ax = cx / G.varX, ay = cy / G.varY; // nm/mm
+    const varHO = Math.max(0, varT - ax * cx - ay * cy);
+    const bm = bo / sw, bvar = boo / sw - bm * bm, bcx = bxo / sw, bcy = byo / sw;
+    const bHO = Math.max(0, bvar - bcx * bcx / G.varX - bcy * bcy / G.varY);
+    return { rms: Math.sqrt(Math.max(0, varT)), rmsHO: Math.sqrt(varHO), inRms: Math.sqrt(Math.max(0, bvar)), inHO: Math.sqrt(bHO), strehl: (cr * cr + ci * ci) / (G.sumA * G.sumA), tx: ax * 1e-6, ty: ay * 1e-6 };
+  }
+  E.buildField = (t, turb) => buildField(t, turb, derived());
+
+  // cheap true Z-tilt (for the camera tip/tilt sensor), subsampled
+  function trueTilt(t, D) {
+    if (S.surfDirty) updateSurf();
+    const sc = D.opdScale, xo = D.v * t, thx = S.th[0], thy = S.th[1];
+    let sw = 0, sxo = 0, syo = 0, sxx = 0, syy = 0;
+    for (let q = 0; q < G.nap; q += 3) {
+      const x = G.apx[q], y = G.apy[q], a = G.amp[q], w = a * a;
+      const opd = (P.turbOn ? scr(x + xo, y + 25.6) * sc : 0) + 2e6 * (thx * x + thy * y) - 2000 * G.surf[q];
+      sw += w; sxo += w * x * opd; syo += w * y * opd; sxx += w * x * x; syy += w * y * y;
+    }
+    return [sxo / sxx * 1e-6, syo / syy * 1e-6];
+  }
+
+  // ---------- Fresnel propagation (band-limited angular spectrum) ----------
+  function propagate(dz) {
+    const N = G.N, dx = G.dx, lam = P.lambda * 1e-6;
+    const key = N + '|' + dx + '|' + lam + '|' + dz.toFixed(4);
+    if (G.Hkey !== key) {
+      const df = 1 / (N * dx), margin = (N * dx - 2 * HW.dmR) / 2;
+      const fc = Math.min(0.5 / dx, margin / (lam * Math.abs(dz) + 1e-12));
+      G.Hr = new Float64Array(N * N); G.Hi = new Float64Array(N * N);
+      for (let j = 0; j < N; j++) {
+        const fy = (j < N / 2 ? j : j - N) * df;
+        for (let i = 0; i < N; i++) {
+          const fx = (i < N / 2 ? i : i - N) * df, f2 = fx * fx + fy * fy;
+          const win = Math.exp(-Math.pow(f2 / (fc * fc), 4));
+          const ph = -Math.PI * lam * dz * f2;
+          G.Hr[j * N + i] = win * Math.cos(ph) / (N * N); G.Hi[j * N + i] = win * Math.sin(ph) / (N * N);
+        }
+      }
+      G.Hkey = key;
+    }
+    const re = G.re, im = G.im, Hr = G.Hr, Hi = G.Hi;
+    fft2(re, im, N, N, false, G.fft, G.fft, G.tr, G.ti);
+    for (let p = 0; p < N * N; p++) { const a = re[p], b = im[p]; re[p] = a * Hr[p] - b * Hi[p]; im[p] = a * Hi[p] + b * Hr[p]; }
+    fft2(re, im, N, N, true, G.fft, G.fft, G.tr, G.ti);
+  }
+
+  // ---------- Shack-Hartmann measurement ----------
+  // Spot centroid = intensity-weighted mean phase gradient over each lenslet (exact for the far-field centroid).
+  const nLL = HW.nLens * HW.nLens;
+  function lensletSums(full) {
+    const N = G.N, re = G.re, im = G.im, L = G.lens, Sx = G.Sx, Sy = G.Sy, SI = G.SI;
+    Sx.fill(0); Sy.fill(0); SI.fill(0);
+    const inv2 = 1 / (2 * G.dx);
+    const visit = (p) => {
+      const j = L[p]; if (j < 0) return;
+      const ar = re[p], ai = im[p]; const I = ar * ar + ai * ai; if (I < 1e-10) return;
+      const gxr = re[p + 1] - re[p - 1], gxi = im[p + 1] - im[p - 1];
+      const gyr = re[p + N] - re[p - N], gyi = im[p + N] - im[p - N];
+      Sx[j] += (ar * gxi - ai * gxr) * inv2; Sy[j] += (ar * gyi - ai * gyr) * inv2; SI[j] += I;
+    };
+    if (full) { for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) visit(j * N + i); }
+    else { for (let q = 0; q < G.nap; q++) { const p = G.ap[q]; const i = p % N, j = (p / N) | 0; if (i > 0 && i < N - 1 && j > 0 && j < N - 1) visit(p); } }
+  }
+
+  const noiseRng = rng(12345);
+  function measure(t, turb, D, calibMode) {
+    const truth = buildField(t, turb, D);
+    const doProp = Math.abs(D.dzDM) > 0.05;
+    if (doProp) propagate(D.dzDM);
+    lensletSums(doProp);
+    const lam = P.lambda * 1e-6, kk = lam / (2 * Math.PI);
+    const sx = new Float64Array(nLL), sy = new Float64Array(nLL), I = Float64Array.from(G.SI);
+    const sat = new Uint8Array(nLL);
+    const qe = P.ignoreQE ? 0.6 : D.qe;
+    const dyn = D.dynR * D.M / HW.fMLA; // max slope in DM space (rad)
+    const cal = S.calib;
+    let dark = qe < 0.004;
+    for (let j = 0; j < nLL; j++) {
+      if (G.SI[j] <= 0) continue;
+      let gx = kk * G.Sx[j] / G.SI[j], gy = kk * G.Sy[j] / G.SI[j];
+      if (!calibMode) {
+        if (cal && G.SI[j] < 0.05 * cal.Iref[j]) { sx[j] = cal.sref ? cal.sref[j] : 0; sy[j] = cal.srefy ? cal.srefy[j] : 0; sat[j] = 2; continue; } // spot too dim: dropped
+        if (P.noise && cal && cal.Iref[j] > 0) {
+          const irel = Math.max(1e-3, G.SI[j] / cal.Iref[j] * qe / 0.6);
+          const sig = (HW.pixel / 50) / Math.sqrt(irel) / HW.fMLA * D.M; // ~1/50 px centroid noise at full signal
+          gx += sig * noiseRng.gauss(); gy += sig * noiseRng.gauss();
+        }
+        if (Math.abs(gx) > dyn) { gx = Math.sign(gx) * dyn; sat[j] = 1; }
+        if (Math.abs(gy) > dyn) { gy = Math.sign(gy) * dyn; sat[j] = 1; }
+      }
+      sx[j] = gx; sy[j] = gy;
+    }
+    return { t, truth, sx, sy, I, sat, dark, prop: doProp };
+  }
+  E.measure = (t, turb) => measure(t, turb, derived(), false);
+
+  // ---------- interaction matrix & reconstructor ----------
+  function slopeVector(m, cal) {
+    const nv = cal.valid.length, s = new Float64Array(2 * nv);
+    for (let k = 0; k < nv; k++) { const j = cal.valid[k]; s[k] = m.sx[j]; s[nv + k] = m.sy[j]; }
+    return s;
+  }
+  function weightedMeans(s, cal) {
+    const nv = cal.valid.length; let mx = 0, my = 0;
+    for (let k = 0; k < nv; k++) { mx += cal.wv[k] * s[k]; my += cal.wv[k] * s[nv + k]; }
+    return [mx, my];
+  }
+  // Calibrate by push-pull poking each actuator (flat input, FSM centred, current geometry)
+  function calibrateBegin() {
+    const D = derived();
+    const save = { c: Float64Array.from(S.c), th: S.th.slice() };
+    S.c.fill(0); S.th = [0, 0]; S.surfDirty = true;
+    const m0 = measure(0, false, D, true);
+    let Imax = 0; for (let j = 0; j < nLL; j++) Imax = Math.max(Imax, m0.I[j]);
+    const valid = []; for (let j = 0; j < nLL; j++) if (m0.I[j] >= 0.1 * Imax) valid.push(j);
+    const Iref = Float64Array.from(m0.I);
+    const sref = Float64Array.from(m0.sx), srefy = Float64Array.from(m0.sy);
+    let wsum = 0; valid.forEach(j => wsum += Iref[j]);
+    const wv = Float64Array.from(valid.map(j => Iref[j] / wsum));
+    const cal = { valid: Int32Array.from(valid), Iref, sref, srefy, wv, D0: D, Draw: new Float64Array(2 * valid.length * 40), dzW: D.dzW, dzDM: D.dzDM, lambda: P.lambda, reducer: P.reducer, beamD: P.beamD, next: 0, save, s0: null };
+    cal.s0 = slopeVector(m0, cal);
+    S.calibPending = cal;
+    return cal;
+  }
+  function calibrateStep(nAct) {
+    const cal = S.calibPending; if (!cal) return true;
+    const D = derived(), delta = 0.05, nv = cal.valid.length, ns = 2 * nv;
+    for (let n = 0; n < nAct && cal.next < 40; n++, cal.next++) {
+      const i = cal.next;
+      S.c.fill(0); S.c[i] = delta; S.surfDirty = true;
+      const sp = slopeVector(measure(0, false, D, true), cal);
+      S.c[i] = -delta; S.surfDirty = true;
+      const sm = slopeVector(measure(0, false, D, true), cal);
+      for (let r = 0; r < ns; r++) cal.Draw[r * 40 + i] = (sp[r] - sm[r]) / (2 * delta);
+    }
+    if (cal.next >= 40) {
+      S.c.set(cal.save.c); S.th = cal.save.th; S.surfDirty = true;
+      S.calib = cal; S.calibPending = null;
+      buildGram(); buildReconstructor();
+      return true;
+    }
+    return false;
+  }
+  function calibrate() { calibrateBegin(); while (!calibrateStep(40)); }
+  E.calibrateBegin = calibrateBegin; E.calibrateStep = calibrateStep; E.calibrate = calibrate;
+
+  function buildReconstructor() {
+    const cal = S.calib; if (!cal) return;
+    const nv = cal.valid.length, ns = 2 * nv, n = 40;
+    const Dm = Float64Array.from(cal.Draw);
+    const filt = P.tt !== 'dm';
+    if (filt) {
+      for (let i = 0; i < n; i++) {
+        let mx = 0, my = 0;
+        for (let k = 0; k < nv; k++) { mx += cal.wv[k] * Dm[k * n + i]; my += cal.wv[k] * Dm[(nv + k) * n + i]; }
+        for (let k = 0; k < nv; k++) { Dm[k * n + i] -= mx; Dm[(nv + k) * n + i] -= my; }
+      }
+    }
+    const A = new Float64Array(n * n);
+    for (let i = 0; i < n; i++) for (let j = i; j < n; j++) { let s = 0; for (let r = 0; r < ns; r++) s += Dm[r * n + i] * Dm[r * n + j]; A[i * n + j] = A[j * n + i] = s; }
+    const { vals, vecs } = jacobiEig(A, n);
+    const kept = [];
+    for (let k = 0; k < n; k++) if (vals[k] > vals[0] * P.eigThr && kept.length < P.modes) kept.push(k);
+    // Mplus = V_k diag(1/l) V_k^T
+    const Mp = new Float64Array(n * n);
+    for (const k of kept) { const il = 1 / vals[k]; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) Mp[i * n + j] += vecs[i * n + k] * vecs[j * n + k] * il; }
+    const R = new Float64Array(n * ns);
+    for (let i = 0; i < n; i++) for (let r = 0; r < ns; r++) { let s = 0; for (let j = 0; j < n; j++) s += Mp[i * n + j] * Dm[r * n + j]; R[i * ns + r] = s; }
+    cal.R = R; cal.eig = vals; cal.kept = kept.length; cal.filt = filt;
+    // finest controlled mode: f_eff = sqrt(<|lap s|^2>/<|grad s|^2>)/(2 pi) over the beam, on the display grid
+    let fmax = 0; const h = Dsp.dxd, w0 = P.beamD / 2;
+    for (const k of kept) {
+      const s = new Float64Array(ND * ND);
+      for (let i = 0; i < n; i++) { const vk = vecs[i * n + k], d = Dsp.ifd[i]; for (let p = 0; p < ND * ND; p++) s[p] += vk * d[p]; }
+      let g2 = 0, l2 = 0;
+      for (let j = 1; j < ND - 1; j++) for (let i = 1; i < ND - 1; i++) {
+        const p = j * ND + i, x = Dsp.x[i], y = Dsp.x[j]; if (x * x + y * y > HW.pupilR * HW.pupilR) continue;
+        const wt = Math.exp(-2 * (x * x + y * y) / (w0 * w0));
+        const gx = (s[p + 1] - s[p - 1]) / (2 * h), gy = (s[p + ND] - s[p - ND]) / (2 * h), lp = (s[p + 1] + s[p - 1] + s[p + ND] + s[p - ND] - 4 * s[p]) / (h * h);
+        g2 += wt * (gx * gx + gy * gy); l2 += wt * lp * lp;
+      }
+      if (g2 > 0) fmax = Math.max(fmax, Math.sqrt(l2 / g2) / (2 * Math.PI));
+    }
+    cal.fModeMax = fmax;
+  }
+  E.buildReconstructor = buildReconstructor;
+
+  // Gram matrix for OPD rms of DM-mode estimates (piston removed, intensity weighted)
+  function buildGram() {
+    const n = 40, Gm = new Float64Array(n * n), m = new Float64Array(n);
+    const dense = G.ifd;
+    for (let i = 0; i < n; i++) { let s = 0; for (let q = 0; q < G.nap; q++) s += G.amp[q] ** 2 * dense[i][q]; m[i] = s / G.sumW; }
+    for (let i = 0; i < n; i++) for (let j = i; j < n; j++) { let s = 0; const a = dense[i], b = dense[j]; for (let q = 0; q < G.nap; q++) s += G.amp[q] ** 2 * a[q] * b[q]; Gm[i * n + j] = Gm[j * n + i] = s / G.sumW - m[i] * m[j]; }
+    S.calib.Gram = Gm;
+    // piston / tip / tilt content of each actuator (intensity weighted) -> constraint basis
+    const B = [new Float64Array(n), new Float64Array(n), new Float64Array(n)];
+    for (let i = 0; i < n; i++) { let p0 = 0, px = 0, py = 0; for (let q = 0; q < G.nap; q++) { const w = G.amp[q] ** 2 * dense[i][q]; p0 += w; px += w * G.apx[q]; py += w * G.apy[q]; } B[0][i] = p0 / G.sumW; B[1][i] = px / (G.sumW * G.varX); B[2][i] = py / (G.sumW * G.varY); }
+    S.calib.PTT = B;
+  }
+  // remove from dc the components that would change piston (always) and tip/tilt (when tilt goes to FSM / off)
+  function projectOut(dc, cal) {
+    const B = cal.filt ? cal.PTT : [cal.PTT[0]], m = B.length;
+    // Gram of constraint rows, solve (B B^T) lam = B dc, dc -= B^T lam
+    const A = [], b = [];
+    for (let a = 0; a < m; a++) { A.push([]); let s = 0; for (let i = 0; i < 40; i++) s += B[a][i] * dc[i]; b.push(s); for (let c = 0; c < m; c++) { let t = 0; for (let i = 0; i < 40; i++) t += B[a][i] * B[c][i]; A[a].push(t); } }
+    const lam = solveSmall(A, b);
+    for (let a = 0; a < m; a++) for (let i = 0; i < 40; i++) dc[i] -= B[a][i] * lam[a];
+  }
+  function solveSmall(A, b) {
+    const n = b.length, M = A.map((r, i) => r.concat([b[i]]));
+    for (let c = 0; c < n; c++) { let piv = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r; [M[c], M[piv]] = [M[piv], M[c]]; for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+    return M.map((r, i) => r[n] / r[i]);
+  }
+
+  // ---------- control ----------
+  function controlUpdate(m, D) {
+    const cal = S.calib; if (!cal || m.dark) return null;
+    const nv = cal.valid.length, ns = 2 * nv;
+    const s = slopeVector(m, cal);
+    for (let r = 0; r < ns; r++) s[r] -= cal.s0[r];
+    const [mx, my] = weightedMeans(s, cal);
+    if (cal.filt) for (let k = 0; k < nv; k++) { s[k] -= mx; s[nv + k] -= my; }
+    const R = cal.R, dc = new Float64Array(40);
+    for (let i = 0; i < 40; i++) { let a = 0; const o = i * ns; for (let r = 0; r < ns; r++) a += R[o + r] * s[r]; dc[i] = a; }
+    // No piston/tip/tilt projection in command space: with a curvature mirror every segment has a broad response, so such a
+    // projection would inject high-order error. Tip/tilt the DM makes is seen by the camera and taken out by the FSM.
+    // WFS-estimated residual (DM-mode space + tilt), nm rms
+    let q = 0; const Gm = cal.Gram; for (let i = 0; i < 40; i++) for (let j = 0; j < 40; j++) q += dc[i] * Gm[i * 40 + j] * dc[j];
+    let est2 = 4e6 * Math.max(0, q);
+    m.wfsEstHO = Math.sqrt(est2);
+    m.wfsTilt = [mx, my];
+    return { dc, mx, my };
+  }
+
+  function doSample() {
+    const D = derived();
+    const m = measure(S.t, P.turbOn, D, false);
+    S.meas = m; S.frame++;
+    const u = controlUpdate(m, D);
+    if (P.closed && u) {
+      for (let i = 0; i < 40; i++) S.cCmd[i] = P.leak * S.cCmd[i] - P.gain * u.dc[i];
+      for (let i = 0; i < 40; i++) S.cCmd[i] = Math.max(-HW.stroke, Math.min(HW.stroke, S.cCmd[i]));
+      const item = { t: S.t + P.delayFrames * D.T, c: Float64Array.from(S.cCmd) };
+      if (P.tt === 'fsm' && P.ttSensor === 'wfs') {
+        S.uCmd[0] = clampF(S.uCmd[0] - P.ttGain * u.mx / 2); S.uCmd[1] = clampF(S.uCmd[1] - P.ttGain * u.my / 2);
+        item.u = S.uCmd.slice();
+      }
+      S.queue.push(item);
+    }
+    const tr = m.truth;
+    S.hist.push({ t: S.t, rms: tr.rms, rmsHO: tr.rmsHO, inRms: tr.inRms, inHO: tr.inHO, strehl: tr.strehl, est: m.wfsEstHO == null ? NaN : m.wfsEstHO, fx: S.th[0], fy: S.th[1], tx: tr.tx, ty: tr.ty, closed: P.closed, stroke: maxStroke() });
+    if (S.hist.length > 4000) S.hist.splice(0, 1000);
+  }
+  function clampF(v) { return Math.max(-HW.fsmRange, Math.min(HW.fsmRange, v)); }
+  function maxStroke() { let m = 0; for (let i = 0; i < 40; i++) m = Math.max(m, Math.abs(S.c[i])); return m / HW.stroke; }
+
+  function doCam() {
+    const D = derived();
+    const tt = trueTilt(S.t, D);
+    if (P.closed && P.tt === 'fsm' && P.ttSensor === 'cam') {
+      S.uCmd[0] = clampF(S.uCmd[0] - P.ttGain * tt[0] / 2); S.uCmd[1] = clampF(S.uCmd[1] - P.ttGain * tt[1] / 2);
+      S.camQueue.push({ t: S.t + 1 / P.camHz, u: S.uCmd.slice() });
+    }
+  }
+
+  // FSM: 2nd-order plant per axis (resonance 1.6 kHz)
+  const FSM_H = 2e-5;
+  function integrateFSM(dt) {
+    if (dt <= 0) return;
+    const w = 2 * Math.PI * HW.fsmFn, z = HW.fsmZeta, n = Math.max(1, Math.ceil(dt / FSM_H - 1e-9)), h = dt / n;
+    const tr = S.trace;
+    for (let s = 0; s < n; s++) {
+      for (let a = 0; a < 2; a++) {
+        const acc = w * w * (S.uA[a] - S.th[a]) - 2 * z * w * S.vth[a];
+        S.vth[a] += acc * h; S.th[a] += S.vth[a] * h;
+      }
+      if (++tr.sub >= 1) { tr.sub = 0; const i = tr.i % tr.n; tr.t[i] = S.t + (s + 1) * h; tr.u[i] = S.uA[0]; tr.th[i] = S.th[0]; tr.i++; }
+    }
+  }
+
+  function advance(dtSim, budgetMs) {
+    const t0 = now(), tStart = S.t, tEnd = S.t + dtSim, D = derived();
+    const T = D.T;
+    let guard = 0;
+    while (S.t < tEnd - 1e-12 && guard++ < 100000) {
+      let tn = tEnd;
+      tn = Math.min(tn, S.nextSample);
+      if (S.queue.length) tn = Math.min(tn, S.queue[0].t);
+      if (S.camQueue.length) tn = Math.min(tn, S.camQueue[0].t);
+      const camOn = P.tt === 'fsm' && P.ttSensor === 'cam';
+      if (camOn) tn = Math.min(tn, S.nextCam);
+      tn = Math.max(tn, S.t);
+      integrateFSM(tn - S.t); S.t = tn;
+      while (S.queue.length && S.queue[0].t <= S.t + 1e-12) {
+        const q = S.queue.shift(); S.c.set(q.c); S.surfDirty = true;
+        if (q.u) { S.uA[0] = q.u[0]; S.uA[1] = q.u[1]; }
+      }
+      while (S.camQueue.length && S.camQueue[0].t <= S.t + 1e-12) { const q = S.camQueue.shift(); S.uA[0] = q.u[0]; S.uA[1] = q.u[1]; }
+      if (camOn && S.t >= S.nextCam - 1e-12) { doCam(); S.nextCam += 1 / P.camHz; if (S.nextCam < S.t) S.nextCam = S.t + 1 / P.camHz; }
+      if (S.t >= S.nextSample - 1e-12) { doSample(); S.nextSample += T; if (S.nextSample < S.t) S.nextSample = S.t + T; }
+      if (budgetMs != null && now() - t0 > budgetMs) break;
+    }
+    return S.t - tStart;
+  }
+  E.advance = advance;
+
+  function setLoop(closed) {
+    P.closed = closed;
+    if (!closed) { S.cCmd.fill(0); S.uCmd = [0, 0]; S.queue.length = 0; S.camQueue.length = 0; S.queue.push({ t: S.t, c: new Float64Array(40), u: [0, 0] }); }
+  }
+  E.setLoop = setLoop;
+  function resetDM() { S.cCmd.fill(0); S.c.fill(0); S.uCmd = [0, 0]; S.uA = [0, 0]; S.th = [0, 0]; S.vth = [0, 0]; S.queue.length = 0; S.camQueue.length = 0; S.surfDirty = true; }
+  E.resetDM = resetDM;
+
+  // ---------- display maps (coarse grid over DM aperture) + camera PSF via MFT ----------
+  const ND = 90, dxd = 2 * HW.mirrorR / ND, NP = 64;
+  const Dsp = { ND, dxd, NP, x: new Float32Array(ND), in: new Float32Array(ND * ND), surf: new Float32Array(ND * ND), res: new Float32Array(ND * ND), amp: new Float32Array(ND * ND), mask: new Uint8Array(ND * ND), psf: new Float32Array(NP * NP), lng: new Float32Array(NP * NP), nlng: 0, ifd: null, maskM: new Uint8Array(ND * ND) };
+  E.Dsp = Dsp;
+  for (let i = 0; i < ND; i++) Dsp.x[i] = (i - ND / 2 + 0.5) * dxd;
+  Dsp.ext = 2 * HW.mirrorR;
+  function buildDisplayIF() {
+    Dsp.ifd = seg.map((q) => { const a = new Float32Array(ND * ND); for (let j = 0; j < ND; j++) for (let i = 0; i < ND; i++) { const x = Dsp.x[i], y = Dsp.x[j]; if (x * x + y * y <= HW.mirrorR * HW.mirrorR) a[j * ND + i] = ifValue(q, x, y); } return a; });
+    for (let j = 0; j < ND; j++) for (let i = 0; i < ND; i++) { const x = Dsp.x[i], y = Dsp.x[j], r2 = x * x + y * y; Dsp.mask[j * ND + i] = r2 <= HW.dmR * HW.dmR ? 1 : 0; Dsp.maskM[j * ND + i] = r2 <= HW.mirrorR * HW.mirrorR ? 1 : 0; }
+  }
+  let mftKey = '', Ar = null, Ai = null;
+  const Tr = new Float64Array(ND * NP), Ti = new Float64Array(ND * NP), Er = new Float64Array(ND * ND), Ei = new Float64Array(ND * ND);
+  function display() {
+    const D = derived();
+    const w = P.beamD / 2, sc = D.opdScale, xo = D.v * S.t, thx = S.th[0], thy = S.th[1];
+    const k = 2 * Math.PI / P.lambda;
+    let sa = 0;
+    for (let j = 0; j < ND; j++) for (let i = 0; i < ND; i++) {
+      const p = j * ND + i;
+      Dsp.in[p] = 0; Dsp.res[p] = 0; Dsp.amp[p] = 0; Er[p] = Ei[p] = 0; Dsp.surf[p] = 0;
+      if (!Dsp.maskM[p]) continue;
+      let s = 0; for (let a = 0; a < 40; a++) { const c = S.c[a]; if (c) s += c * Dsp.ifd[a][p]; }
+      Dsp.surf[p] = s;
+      if (!Dsp.mask[p]) continue;
+      const x = Dsp.x[i], y = Dsp.x[j];
+      const oin = (P.turbOn ? scr(x + xo, y + 25.6) * sc : 0) + 2e6 * (thx * x + thy * y);
+      const ores = oin - 2000 * s;
+      const a = Math.exp(-(x * x + y * y) / (w * w));
+      Dsp.in[p] = oin; Dsp.surf[p] = s; Dsp.res[p] = ores; Dsp.amp[p] = a; sa += a;
+      Er[p] = a * Math.cos(k * ores); Ei[p] = a * Math.sin(k * ores);
+    }
+    // MFT to camera: field of view +/- 8 lambda/D
+    const key = P.lambda + '|' + P.beamD;
+    if (key !== mftKey) {
+      Ar = new Float64Array(NP * ND); Ai = new Float64Array(NP * ND);
+      const du = 16 * D.lamOverD / NP, lam = P.lambda * 1e-6;
+      for (let p = 0; p < NP; p++) { const u = (p - NP / 2 + 0.5) * du; for (let m = 0; m < ND; m++) { const ph = -2 * Math.PI * u * Dsp.x[m] / lam; Ar[p * ND + m] = Math.cos(ph); Ai[p * ND + m] = Math.sin(ph); } }
+      mftKey = key; Dsp.du = du; Dsp.nlng = 0; Dsp.lng.fill(0);
+    }
+    // T[n][p] = sum_m E[n][m] A[p][m]
+    for (let n = 0; n < ND; n++) for (let p = 0; p < NP; p++) {
+      let r = 0, im = 0; const eo = n * ND, ao = p * ND;
+      for (let m = 0; m < ND; m++) { const er = Er[eo + m], ei = Ei[eo + m]; if (er === 0 && ei === 0) continue; const a = Ar[ao + m], b = Ai[ao + m]; r += er * a - ei * b; im += er * b + ei * a; }
+      Tr[n * NP + p] = r; Ti[n * NP + p] = im;
+    }
+    const norm = 1 / (sa * sa);
+    for (let q = 0; q < NP; q++) for (let p = 0; p < NP; p++) {
+      let r = 0, im = 0; const bo = q * ND;
+      for (let n = 0; n < ND; n++) { const a = Ar[bo + n], b = Ai[bo + n], tr = Tr[n * NP + p], ti = Ti[n * NP + p]; r += a * tr - b * ti; im += a * ti + b * tr; }
+      const v = (r * r + im * im) * norm; Dsp.psf[q * NP + p] = v;
+    }
+    for (let i = 0; i < NP * NP; i++) Dsp.lng[i] += Dsp.psf[i];
+    Dsp.nlng++;
+    return Dsp;
+  }
+  E.display = display;
+  E.resetLong = () => { Dsp.lng.fill(0); Dsp.nlng = 0; };
+
+  E.init = function (seed) { genScreen(seed || 7); setupGrid(); calibrate(); };
+  E.rebuild = function () { setupGrid(); };
+  E.setupBeam = () => setupBeam();
+  return E;
+}
+
+const API = { createAO, FFT, fft2, rng, HW, REDUCERS, siQE, jacobiEig };
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else global.AOEngine = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script id="ao-ui">
+(function () {
+'use strict';
+const { createAO, HW, REDUCERS } = window.AOEngine;
+const $ = (id) => document.getElementById(id);
+const RM = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+const PRISTINE = $('app').outerHTML; // untouched markup, used for the standalone download
+
+const AO = createAO({ params: {} }); // engine defaults: 795 nm, r0 = 2 mm and fG = 8 Hz at 795 nm, 10 modes, FSM on camera
+const P = AO.P, S = AO.S, Dsp = AO.Dsp, ND = Dsp.ND, NP = Dsp.NP;
+let V = P.fG * P.r0 / 0.427; // frozen-flow speed (mm/s), held fixed when strength or wavelength changes
+
+const UI = { wz: 'beam', paused: false, timeScale: 0.1, mag: 10, camLong: false, camScale: 'gamma', ready: false, calib: null,
+  autoClose: true, rate: 0.1, dirty: true, afterCal: null, pendingClose: null, frameN: 0,
+  sIn: 150, sDM: 0.05, wasClosed: false, wfFixed: false, wfFix: 300 };
+
+// ---------------- theme ----------------
+let T = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = (n) => cs.getPropertyValue(n).trim();
+  T = { bg: g('--bg'), panel: g('--panel'), panel2: g('--panel2'), ink: g('--ink'), muted: g('--muted'), faint: g('--faint'), rule: g('--rule'), rule2: g('--rule2'),
+    accent: g('--accent'), ok: g('--ok'), warn: g('--warn'), bad: g('--bad'), screen: g('--screen'), hole: g('--hole') };
+  UI.dirty = true; drawColorbars();
+}
+if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+
+// ---------------- helpers ----------------
+const DPR = () => Math.min(2, window.devicePixelRatio || 1);
+function fit(cv) {
+  const dpr = DPR(), w = cv.clientWidth, h = cv.clientHeight;
+  const W = Math.max(1, Math.round(w * dpr)), H = Math.max(1, Math.round(h * dpr));
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w, h, dpr };
+}
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function hexA(hex, a) { const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return 'rgba(120,140,200,' + a + ')'; const n = parseInt(m[1], 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+function fmt(v, d) { return (v >= 0 ? '' : '−') + Math.abs(v).toFixed(d); }
+function fmtS(v, d) { return (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(d); }
+function nmFmt(v) { return v >= 1000 ? (v / 1000).toFixed(2) + ' µm' : v.toFixed(v < 10 ? 1 : 0) + ' nm'; }
+function lenFmt(mm) { const a = Math.abs(mm); return a >= 1000 ? fmt(mm / 1000, 2) + ' m' : a >= 10 ? fmt(mm, 0) + ' mm' : fmt(mm, 1) + ' mm'; }
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+const r0At = (lam) => P.r0 * Math.pow(lam / 500, 1.2);
+const fgAt = (lam) => P.fG * Math.pow(500 / lam, 1.2);
+
+function lamRGB(l) {
+  let r = 0, g = 0, b = 0;
+  if (l < 440) { r = -(l - 440) / 60; b = 1; } else if (l < 490) { g = (l - 440) / 50; b = 1; } else if (l < 510) { g = 1; b = -(l - 510) / 20; }
+  else if (l < 580) { r = (l - 510) / 70; g = 1; } else if (l < 645) { r = 1; g = -(l - 645) / 65; } else if (l <= 700) { r = 1; }
+  if (l > 700) return null;
+  let f = 1; if (l < 420) f = 0.4 + 0.6 * (l - 380) / 40;
+  return [Math.round(255 * Math.pow(r * f, 0.8)), Math.round(255 * Math.pow(g * f, 0.8)), Math.round(255 * Math.pow(b * f, 0.8))];
+}
+function beamRGB() { return lamRGB(P.lambda) || [176, 72, 140]; } // IR in false colour
+function camTint() { return lamRGB(P.lambda) || [226, 226, 226]; }
+
+const LUT = new Uint8Array(256 * 3);
+(function () {
+  const st = [[0, [42, 70, 180]], [0.25, [118, 158, 236]], [0.5, [236, 235, 229]], [0.75, [240, 148, 108]], [1, [172, 30, 40]]];
+  for (let i = 0; i < 256; i++) {
+    const x = i / 255; let k = 0; while (k < st.length - 2 && x > st[k + 1][0]) k++;
+    const [xa, ca] = st[k], [xb, cb] = st[k + 1], f = (x - xa) / (xb - xa);
+    for (let c = 0; c < 3; c++) LUT[i * 3 + c] = Math.round(ca[c] + (cb[c] - ca[c]) * f);
+  }
+})();
+const lutIdx = (v) => clamp(Math.round((v + 1) * 127.5), 0, 255);
+
+// ---------------- controls ----------------
+const R0MIN = 0.5, R0MAX = 30, FGMIN = 0.3, FGMAX = 600;
+const r0FromS = (s) => R0MIN * Math.pow(R0MAX / R0MIN, s / 1000), sFromR0 = (r) => 1000 * Math.log(clamp(r, R0MIN, R0MAX) / R0MIN) / Math.log(R0MAX / R0MIN);
+const fgFromS = (s) => FGMIN * Math.pow(FGMAX / FGMIN, s / 1000), sFromFG = (f) => 1000 * Math.log(clamp(f, FGMIN, FGMAX) / FGMIN) / Math.log(FGMAX / FGMIN);
+
+function segInit(id, cb) {
+  const el = $(id);
+  el.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    el.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    cb(b.dataset.v);
+  });
+}
+REDUCERS.forEach((r, i) => { const o = document.createElement('option'); o.value = i; o.textContent = r.label + '   (M = ' + (r.f2 / r.f1).toFixed(3) + ')' + (i === 0 ? ' · specified' : ''); $('selRed').appendChild(o); });
+
+function syncSource() { $('rngR0').value = sFromR0(r0At(P.lambda)); $('rngFG').value = sFromFG(fgAt(P.lambda)); }
+function syncControls() {
+  $('rngLam').value = P.lambda; $('rngBeam').value = P.beamD; syncSource();
+  $('rngRate').value = P.loopHz; $('rngGain').value = P.gain; $('rngLeak').value = P.leak; $('rngTTG').value = P.ttGain; $('rngModes').value = P.modes;
+  $('selRed').value = P.reducer; $('rngD1').value = P.d1; $('rngD2').value = AO.derived().d2;
+  $('chkTurb').checked = P.turbOn; $('chkQE').checked = P.ignoreQE;
+  updateLabels();
+}
+
+function updateLabels() {
+  const D = AO.derived();
+  $('oLam').textContent = P.lambda + ' nm' + (P.lambda > 700 ? ' · IR' : '');
+  $('oBeam').textContent = P.beamD.toFixed(1) + ' mm';
+  $('hBeam').textContent = P.beamD > 14 ? 'wider than the 14 mm pupil; the 17 mm aperture clips it' : 'on the WFS: Ø ' + (D.M * P.beamD).toFixed(2) + ' mm = ' + (D.M * P.beamD / HW.lensPitch).toFixed(1) + ' lenslets';
+  const r0l = r0At(P.lambda), fgl = fgAt(P.lambda);
+  $('oR0').textContent = r0l.toFixed(r0l < 10 ? 2 : 1) + ' mm';
+  $('hR0').textContent = 'at ' + P.lambda + ' nm · D/r₀ = ' + D.dOverR0.toFixed(1) + ' · ' + P.r0.toFixed(2) + ' mm at 500 nm';
+  $('oFG').textContent = (fgl < 10 ? fgl.toFixed(1) : fgl.toFixed(0)) + ' Hz';
+  $('hFG').textContent = 'at ' + P.lambda + ' nm · crosswind ' + (D.v >= 1000 ? (D.v / 1000).toFixed(2) + ' m/s' : D.v.toFixed(0) + ' mm/s');
+  $('oRate').textContent = P.loopHz + ' Hz';
+  $('oGain').textContent = P.gain.toFixed(2); $('oLeak').textContent = P.leak.toFixed(3); $('oTTG').textContent = P.ttGain.toFixed(2);
+  $('oModes').textContent = S.calib && S.calib.kept < P.modes ? S.calib.kept + ' (of ' + P.modes + ' requested)' : String(P.modes);
+  $('oM').textContent = 'M = ' + D.M.toFixed(3);
+  $('hRed').textContent = 'L1–L2 spacing ' + (D.R.f1 + D.R.f2) + ' mm · 14 mm pupil → ' + (14 * D.M).toFixed(2) + ' mm on the 5.4 mm sensor' + (14 * D.M > 5.25 ? ' (overfills)' : '');
+  $('oD1').textContent = P.d1.toFixed(0) + ' mm';
+  $('oD2').textContent = D.d2.toFixed(1) + ' mm';
+  const conj = Math.abs(D.dzW) < 0.05;
+  $('hD2').innerHTML = 'DM image plane at ' + D.zc.toFixed(1) + ' mm · ' + (conj ? '<span style="color:var(--ok)">WFS conjugate</span>' : 'Δz<sub>W</sub> ' + fmtS(D.dzW, 1) + ' mm = ' + lenFmt(D.dzDM) + ' at DM');
+  $('fixRow').classList.toggle('off', !UI.wfFixed);
+  const cal = S.calib;
+  let ct;
+  if (UI.calib) ct = 'Calibrating: poking segment ' + Math.min(40, (S.calibPending ? S.calibPending.next : 40) + 1) + ' / 40…';
+  else if (!cal) ct = 'Interaction matrix: not calibrated';
+  else {
+    const same = Math.abs(cal.dzW - D.dzW) < 0.05 && cal.lambda === P.lambda;
+    ct = 'Interaction matrix: ' + cal.valid.length + ' lenslets × 40 segments, ' + cal.kept + ' modes. Calibrated with the WFS at <span class="mono">Δz<sub>W</sub> = ' + fmtS(cal.dzW, 1) + ' mm</span>' + (cal.lambda !== P.lambda ? ', λ = ' + cal.lambda + ' nm' : '') + '.' + (same ? '' : ' <b style="color:var(--warn)">Setup has changed since.</b>');
+  }
+  $('calTxt').innerHTML = ct;
+  $('btnRecal').disabled = !!UI.calib;
+}
+
+function bindRange(id, fn) { const el = $(id); el.addEventListener('input', () => { fn(+el.value); updateLabels(); UI.dirty = true; }); }
+function setLambda(l) { P.lambda = l; $('rngLam').value = l; syncSource(); AO.resetLong(); updateLabels(); UI.dirty = true; }
+bindRange('rngLam', (v) => setLambda(v));
+document.querySelectorAll('#lamPresets button').forEach((b) => b.addEventListener('click', () => setLambda(+b.dataset.l)));
+let beamTimer = 0;
+bindRange('rngBeam', (v) => { P.beamD = v; AO.setupBeam(); AO.resetLong(); clearTimeout(beamTimer); beamTimer = setTimeout(() => startCalibration('beam'), 350); });
+bindRange('rngR0', (s) => {
+  P.r0 = r0FromS(s) * Math.pow(500 / P.lambda, 1.2);
+  P.fG = 0.427 * V / P.r0;
+  const fgl = fgAt(P.lambda);
+  if (fgl > FGMAX || fgl < FGMIN) { P.fG = clamp(fgl, FGMIN, FGMAX) * Math.pow(P.lambda / 500, 1.2); V = P.fG * P.r0 / 0.427; }
+  $('rngFG').value = sFromFG(fgAt(P.lambda)); AO.resetLong();
+});
+bindRange('rngFG', (s) => { P.fG = fgFromS(s) * Math.pow(P.lambda / 500, 1.2); V = P.fG * P.r0 / 0.427; });
+bindRange('rngRate', (v) => { P.loopHz = v; });
+bindRange('rngGain', (v) => { P.gain = v; });
+bindRange('rngLeak', (v) => { P.leak = v; });
+bindRange('rngTTG', (v) => { P.ttGain = v; });
+bindRange('rngModes', (v) => { P.modes = v; P.eigThr = 1e-5; AO.buildReconstructor(); });
+bindRange('rngD1', (v) => { P.d1 = v; clearScen(); });
+bindRange('rngD2', (v) => { P.d2 = v; clearScen(); });
+$('chkTurb').addEventListener('change', (e) => { P.turbOn = e.target.checked; AO.resetLong(); UI.dirty = true; });
+$('chkQE').addEventListener('change', (e) => { P.ignoreQE = e.target.checked; UI.dirty = true; });
+$('selRed').addEventListener('change', (e) => { changeReducer(+e.target.value); clearScen(); });
+function changeReducer(i) {
+  const was = P.closed; if (was) AO.setLoop(false);
+  P.reducer = i; P.d1 = REDUCERS[i].f1; P.d2 = null; AO.rebuild(); P.d2 = AO.derived().zc;
+  syncControls(); startCalibration('reducer', was);
+}
+$('btnSnap').addEventListener('click', () => { P.d2 = +AO.derived().zc.toFixed(2); $('rngD2').value = P.d2; updateLabels(); UI.dirty = true; clearScen(); toast('WFS moved to the DM image plane'); });
+$('btnRecal').addEventListener('click', () => startCalibration('here'));
+segInit('segMag', (v) => { UI.mag = +v; });
+segInit('segWz', (v) => { UI.wz = v; });
+segInit('segWf', (v) => { UI.wfFixed = v === 'fixed'; updateLabels(); UI.dirty = true; });
+$('numWf').addEventListener('input', (e) => { const v = +e.target.value; if (v > 0) { UI.wfFix = v; UI.dirty = true; } });
+segInit('segExp', (v) => { UI.camLong = v === 'long'; AO.resetLong(); $('camExpTxt').textContent = UI.camLong ? 'long exposure' : 'short exposure'; });
+segInit('segCs', (v) => { UI.camScale = v; });
+$('selSpeed').addEventListener('change', (e) => { UI.timeScale = +e.target.value; });
+
+$('btnLoop').addEventListener('click', () => { if (!UI.ready) return; UI.autoClose = false; UI.pendingClose = null; setLoopUI(!P.closed); });
+function setLoopUI(on) { AO.setLoop(on); AO.resetLong(); toast(on ? 'Loops closed' : 'Loops opened: DM and FSM relaxed to zero'); refreshLoopBtn(); }
+function refreshLoopBtn() {
+  const b = $('btnLoop'); b.classList.toggle('on', P.closed); b.setAttribute('aria-pressed', P.closed ? 'true' : 'false');
+  $('loopTxt').textContent = P.closed ? 'Loops closed' : 'Loops open';
+}
+$('btnRun').addEventListener('click', () => { UI.paused = !UI.paused; $('btnRun').textContent = UI.paused ? 'Run' : 'Pause'; $('btnRun').setAttribute('aria-pressed', String(!UI.paused)); });
+$('btnStep').addEventListener('click', () => {
+  if (UI.calib || !UI.ready) return;
+  if (!UI.paused) { UI.paused = true; $('btnRun').textContent = 'Run'; }
+  AO.advance(AO.derived().T); UI.dirty = true;
+});
+$('btnNewTurb').addEventListener('click', () => { if (!UI.ready) return; toast('Generating new chamber turbulence…'); setTimeout(() => { AO.genScreen((Math.random() * 1e9) | 0); AO.resetLong(); UI.dirty = true; }, 30); });
+$('btnFlat').addEventListener('click', () => { AO.resetDM(); UI.dirty = true; toast('DM and FSM commands zeroed'); });
+
+// ---------------- download (standalone HTML) ----------------
+function standaloneHTML() {
+  const links = Array.from(document.querySelectorAll('link[data-keep]')).map((l) => l.outerHTML).join('\n');
+  const css = $('ao-style').textContent, eng = $('ao-engine').textContent, ui = $('ao-ui').textContent, close = '</' + 'script>';
+  return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<title>DMH40 AO Bench</title>\n' + links +
+    '\n<style id="ao-style">' + css + '</style>\n</head>\n<body>\n' + PRISTINE + '\n<script id="ao-engine">' + eng + close + '\n<script id="ao-ui">' + ui + close + '\n</body>\n</html>\n';
+}
+(async function initDownloads() {
+  try {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    const dl = await window.claude.use('downloads');
+    if (!dl) return;
+    const b = $('btnDl'); b.hidden = false;
+    b.addEventListener('click', async () => {
+      try { const r = await dl.save({ filename: 'dmh40-ao-bench.html', data: standaloneHTML() }); if (r && r.status === 'saved') toast('Download started: dmh40-ao-bench.html'); }
+      catch (e) { const c = e && e.code; if (c === 'declined') return; toast(c === 'rate_limited' ? 'A save prompt is already open' : 'Download is not available in this view'); if (c === 'unavailable' || c === 'not_granted') b.hidden = true; }
+    });
+  } catch (e) { /* no download support in this view */ }
+})();
+
+// ---------------- calibration ----------------
+function startCalibration(reason, forceWasClosed) {
+  UI.wasClosed = forceWasClosed != null ? forceWasClosed : P.closed;
+  if (P.closed) AO.setLoop(false);
+  AO.resetDM();
+  AO.calibrateBegin();
+  UI.calib = { reason };
+  updateLabels();
+}
+function stepCalibration() {
+  const t0 = performance.now(); let done = false;
+  while (!done && performance.now() - t0 < 9) done = AO.calibrateStep(1);
+  UI.dirty = true;
+  if (done) {
+    UI.calib = null; AO.resetDM(); AO.resetLong();
+    if (UI.wasClosed) AO.setLoop(true);
+    refreshLoopBtn(); updateLabels();
+    const cb = UI.afterCal; UI.afterCal = null;
+    if (cb) cb(); else toast('Interaction matrix calibrated (' + S.calib.kept + ' modes)');
+  } else if (UI.frameN % 4 === 0) updateLabels();
+}
+
+// ---------------- scenarios ----------------
+const SCEN = { conj: { dz: 0 }, p100: { dz: 100 }, p150: { dz: 150 }, strong: { dz: 100, r0: 1.2 }, m375: { dz: 150, red: 3 } };
+function clearScen() { document.querySelectorAll('#scen button').forEach((b) => b.setAttribute('aria-pressed', 'false')); }
+$('scen').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b || !UI.ready) return;
+  document.querySelectorAll('#scen button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  runScenario(b.dataset.s);
+});
+function runScenario(name) {
+  const sc = SCEN[name];
+  UI.autoClose = false; UI.pendingClose = null;
+  if (P.closed) AO.setLoop(false);
+  const r0l = sc.r0 || 2;
+  Object.assign(P, { lambda: 795, beamD: 10, gain: 0.4, leak: 0.99, ttGain: 0.5, loopHz: 190, turbOn: true, ignoreQE: true, modes: 10, eigThr: 1e-5 });
+  P.r0 = r0l * Math.pow(500 / 795, 1.2);
+  V = 37.5; P.fG = 0.427 * V / P.r0; // default crosswind
+  const red = sc.red || 0, redChanged = red !== P.reducer;
+  P.reducer = red; P.d1 = REDUCERS[red].f1; P.d2 = null;
+  if (redChanged) AO.rebuild(); else AO.setupBeam();
+  P.d2 = AO.derived().zc;
+  syncControls();
+  const go = () => {
+    P.d2 = +(AO.derived().zc + sc.dz).toFixed(2);
+    AO.resetDM(); AO.resetLong(); AO.buildReconstructor();
+    syncControls(); refreshLoopBtn();
+    UI.pendingClose = S.t + 0.12;
+    if (UI.paused) { UI.paused = false; $('btnRun').textContent = 'Pause'; }
+    toast((sc.dz ? 'WFS ' + sc.dz + ' mm past the DM image plane' : 'WFS at the DM image plane') + ' · loops close in 0.12 s');
+  };
+  const cal = S.calib;
+  const need = !cal || Math.abs(cal.dzW) > 0.05 || cal.reducer !== P.reducer || cal.beamD !== P.beamD || cal.lambda !== P.lambda || redChanged;
+  if (need) { UI.afterCal = go; startCalibration('scenario', false); } else go();
+}
+
+// ---------------- drawing helpers ----------------
+const off = document.createElement('canvas'); off.width = ND; off.height = ND; const offx = off.getContext('2d'); const offImg = offx.createImageData(ND, ND);
+const offC = document.createElement('canvas'); offC.width = NP; offC.height = NP; const offCx = offC.getContext('2d'); const offCImg = offCx.createImageData(NP, NP);
+
+function weightedRms(arr) {
+  let sw = 0, s = 0, s2 = 0;
+  for (let p = 0; p < ND * ND; p++) { if (!Dsp.mask[p]) continue; const w = Dsp.amp[p] * Dsp.amp[p]; sw += w; s += w * arr[p]; s2 += w * arr[p] * arr[p]; }
+  const m = s / sw; return Math.sqrt(Math.max(0, s2 / sw - m * m));
+}
+const bufIn = new Float32Array(ND * ND), bufRes = new Float32Array(ND * ND);
+function detilt(arr, out) { // remove intensity-weighted piston and tip/tilt (the FSM's job) for display
+  let sw = 0, s0 = 0, sx = 0, sy = 0, sxx = 0, syy = 0;
+  for (let p = 0; p < ND * ND; p++) { if (!Dsp.mask[p]) continue; const w = Dsp.amp[p] * Dsp.amp[p], x = Dsp.x[p % ND], y = Dsp.x[(p / ND) | 0]; sw += w; s0 += w * arr[p]; sx += w * x * arr[p]; sy += w * y * arr[p]; sxx += w * x * x; syy += w * y * y; }
+  const m = s0 / sw, ax = sx / sxx, ay = sy / syy;
+  for (let p = 0; p < ND * ND; p++) out[p] = Dsp.mask[p] ? arr[p] - m - ax * Dsp.x[p % ND] - ay * Dsp.x[(p / ND) | 0] : 0;
+  return out;
+}
+function meanW(arr) { let sw = 0, s = 0; for (let p = 0; p < ND * ND; p++) { if (!Dsp.mask[p]) continue; const w = Dsp.amp[p] * Dsp.amp[p]; sw += w; s += w * arr[p]; } return s / sw; }
+// electrode outlines (rings + spokes), physical y up
+function drawSegOutline(ctx, cx, cy, k, color, lw) {
+  const R = HW.ringR;
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.beginPath();
+  for (const r of [R[1], R[2], R[3]]) { ctx.moveTo(cx + r * k, cy); ctx.arc(cx, cy, r * k, 0, 2 * Math.PI); }
+  for (let j = 0; j < 8; j++) { const a = Math.PI / 2 + j * Math.PI / 4; ctx.moveTo(cx, cy); ctx.lineTo(cx + R[1] * k * Math.cos(a), cy - R[1] * k * Math.sin(a)); }
+  for (let j = 0; j < 16; j++) { const a = Math.PI / 2 + j * Math.PI / 8; ctx.moveTo(cx + R[1] * k * Math.cos(a), cy - R[1] * k * Math.sin(a)); ctx.lineTo(cx + R[3] * k * Math.cos(a), cy - R[3] * k * Math.sin(a)); }
+  ctx.stroke();
+}
+function sectorPath(ctx, cx, cy, k, q) {
+  ctx.beginPath(); ctx.arc(cx, cy, q.r1 * k, -q.a0, -(q.a0 + q.da), true); ctx.arc(cx, cy, q.r0 * k, -(q.a0 + q.da), -q.a0, false); ctx.closePath();
+}
+function paintMap(cv, arr, scale, fade, bias, mask) {
+  const { ctx, w, h } = fit(cv);
+  const d = offImg.data;
+  for (let p = 0; p < ND * ND; p++) {
+    const i = p % ND, j = (p / ND) | 0, o = ((ND - 1 - j) * ND + i) * 4; // y up
+    if (!mask[p]) { d[o + 3] = 0; continue; }
+    const k = lutIdx((arr[p] - bias) / scale) * 3;
+    d[o] = LUT[k]; d[o + 1] = LUT[k + 1]; d[o + 2] = LUT[k + 2];
+    d[o + 3] = fade ? Math.round(255 * clamp((Dsp.amp[p] * Dsp.amp[p] - 0.01) / 0.125, 0, 1)) : 255;
+  }
+  offx.putImageData(offImg, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(off, 0, 0, w, h);
+  const k = w / Dsp.ext;
+  ctx.strokeStyle = T.faint; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w / 2, h / 2, HW.mirrorR * k - 0.5, 0, 7); ctx.stroke();
+  ctx.fillStyle = T.muted; ctx.fillRect(w - 6 - 5 * k, h - 9, 5 * k, 2);
+  ctx.font = '10px "IBM Plex Mono", monospace'; ctx.textAlign = 'right'; ctx.fillText('5 mm', w - 6, h - 13);
+  return { ctx, w, h, k };
+}
+function beamCircle(ctx, w, h, k) {
+  if (P.beamD >= 17) return;
+  ctx.setLineDash([4, 3]); ctx.strokeStyle = T.ink; ctx.globalAlpha = 0.55; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w / 2, h / 2, P.beamD / 2 * k, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+}
+
+function drawMaps() {
+  const aIn = detilt(Dsp.in, bufIn), aRes = detilt(Dsp.res, bufRes);
+  const rIn = weightedRms(aIn), rRes = weightedRms(aRes);
+  if (UI.wfFixed) UI.sIn = UI.wfFix;
+  else { const tgt = Math.max(20, 2.6 * rIn); UI.sIn = tgt > UI.sIn ? tgt : UI.sIn * 0.97 + tgt * 0.03; }
+  let m = paintMap($('cvIn'), aIn, UI.sIn, true, 0, Dsp.mask); beamCircle(m.ctx, m.w, m.h, m.k);
+  m = paintMap($('cvRes'), aRes, UI.sIn, true, 0, Dsp.mask); beamCircle(m.ctx, m.w, m.h, m.k);
+  // DM surface over the whole 18 mm mirror
+  let sm = 0, sn = 0;
+  for (let p = 0; p < ND * ND; p++) if (Dsp.maskM[p]) { sm += Dsp.surf[p]; sn++; }
+  const smean = sm / Math.max(1, sn);
+  let dev = 0; for (let p = 0; p < ND * ND; p++) if (Dsp.maskM[p]) dev = Math.max(dev, Math.abs(Dsp.surf[p] - smean));
+  const tgtD = Math.max(0.02, dev * 1.1);
+  if (UI.wfFixed) UI.sDM = UI.wfFix / 1000;
+  else UI.sDM = tgtD > UI.sDM ? tgtD : UI.sDM * 0.96 + tgtD * 0.04;
+  m = paintMap($('cvDM'), Dsp.surf, UI.sDM, false, smean, Dsp.maskM);
+  const { ctx, w, h, k } = m;
+  const poking = UI.calib && S.calibPending ? S.calibPending.next : -1;
+  if (poking >= 0 && poking < 40) { sectorPath(ctx, w / 2, h / 2, k, AO.seg[poking]); ctx.fillStyle = hexA(T.accent, 0.35); ctx.fill(); ctx.strokeStyle = T.accent; ctx.lineWidth = 2; ctx.stroke(); }
+  drawSegOutline(ctx, w / 2, h / 2, k, 'rgba(20,28,27,.35)', 0.8);
+  ctx.setLineDash([3, 3]); ctx.strokeStyle = 'rgba(20,28,27,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w / 2, h / 2, HW.pupilR * k, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  const pk = AO.seg[Math.min(39, Math.max(0, poking))].num;
+  $('vIn').textContent = nmFmt(rIn) + ' rms';
+  $('vRes').textContent = nmFmt(rRes) + ' rms';
+  $('vDM').textContent = UI.calib ? 'poking ' + pk : 'segments 1–40';
+  $('capDM').textContent = UI.calib ? 'Calibrating: push-pull poke of segment ' + pk + ' (manual numbering). Dashed: 14 mm pupil.' : '40 segments as in the manual: 24 inside the 14 mm pupil (dashed), 16 outside.';
+  $('cbInMin').textContent = '−' + UI.sIn.toFixed(0); $('cbInMax').textContent = '+' + UI.sIn.toFixed(0) + ' nm';
+  $('cbResMin').textContent = '−' + UI.sIn.toFixed(0); $('cbResMax').textContent = '+' + UI.sIn.toFixed(0) + ' nm';
+  $('cbDMMin').textContent = '−' + (UI.sDM * 1000).toFixed(0); $('cbDMMax').textContent = '+' + (UI.sDM * 1000).toFixed(0) + ' nm';
+}
+function drawColorbars() {
+  ['cbIn', 'cbDM', 'cbRes'].forEach((id) => {
+    const cv = $(id); if (!cv) return; const { ctx, w, h } = fit(cv);
+    for (let x = 0; x < w; x++) { const i = Math.round(x / Math.max(1, w - 1) * 255) * 3; ctx.fillStyle = 'rgb(' + LUT[i] + ',' + LUT[i + 1] + ',' + LUT[i + 2] + ')'; ctx.fillRect(x, 0, 1, h); }
+  });
+}
+
+// ---------------- camera ----------------
+function drawCamera() {
+  const { ctx, w, h } = fit($('cvCam'));
+  const src = UI.camLong && Dsp.nlng > 0 ? Dsp.lng : Dsp.psf, nrm = UI.camLong && Dsp.nlng > 0 ? 1 / Dsp.nlng : 1;
+  const tint = camTint(), d = offCImg.data;
+  let peak = 0;
+  for (let i = 0; i < NP * NP; i++) {
+    const v = src[i] * nrm; peak = Math.max(peak, v);
+    let m = UI.camScale === 'lin' ? v : UI.camScale === 'log' ? (Math.log10(Math.max(v, 1e-5)) + 4) / 4 : Math.sqrt(Math.max(0, v));
+    m = clamp(m, 0, 1);
+    const px = i % NP, q = (i / NP) | 0, o = ((NP - 1 - q) * NP + px) * 4;
+    d[o] = tint[0] * m; d[o + 1] = tint[1] * m; d[o + 2] = tint[2] * m; d[o + 3] = 255;
+  }
+  offCx.putImageData(offCImg, 0, 0);
+  ctx.fillStyle = T.screen; ctx.fillRect(0, 0, w, h);
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(offC, 0, 0, w, h);
+  ctx.strokeStyle = 'rgba(214,222,220,.22)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(w / 2, h / 2 - 10); ctx.lineTo(w / 2, h / 2 - 4); ctx.moveTo(w / 2, h / 2 + 4); ctx.lineTo(w / 2, h / 2 + 10); ctx.moveTo(w / 2 - 10, h / 2); ctx.lineTo(w / 2 - 4, h / 2); ctx.moveTo(w / 2 + 4, h / 2); ctx.lineTo(w / 2 + 10, h / 2); ctx.stroke();
+  const D = AO.derived(), pxPerLD = w / 16;
+  ctx.fillStyle = 'rgba(214,222,220,.8)'; ctx.fillRect(8, h - 10, pxPerLD * 2, 2);
+  ctx.font = '10px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+  ctx.fillText('2λ/D = ' + (2 * D.lamOverD * 1e6).toFixed(0) + ' µrad', 8, h - 14);
+  const st = S.meas ? S.meas.truth.strehl : 0;
+  $('vCam').textContent = UI.camLong ? 'peak ' + peak.toFixed(2) : 'S ' + st.toFixed(2);
+  $('camScaleTxt').textContent = '±8 λ/D = ±' + (8 * D.lamOverD * 1e6).toFixed(0) + ' µrad';
+}
+
+// ---------------- WFS spot field ----------------
+function drawWFS() {
+  const { ctx, w, h } = fit($('cvWfs'));
+  const D = AO.derived(), nL = HW.nLens, p = HW.lensPitch, cx = w / 2, cy = h / 2;
+  const zoom = UI.wz === 'beam' ? clamp(HW.sensor / (1.3 * D.M * Math.min(P.beamD, 17)), 1, 4) : 1, k = w / HW.sensor * zoom;
+  ctx.fillStyle = T.screen; ctx.fillRect(0, 0, w, h);
+  const half = nL * p / 2;
+  const LX = (jx) => cx + (-half + jx * p) * k, LY = (jy) => cy - (-half + (jy + 1) * p) * k; // top-left corner, y up
+  ctx.strokeStyle = 'rgba(214,222,220,.07)'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let i = 0; i <= nL; i++) { const x = cx + (-half + i * p) * k, y = cy + (-half + i * p) * k; ctx.moveTo(x, cy - half * k); ctx.lineTo(x, cy + half * k); ctx.moveTo(cx - half * k, y); ctx.lineTo(cx + half * k, y); }
+  ctx.stroke();
+  const cal = S.calib, m = S.meas;
+  if (cal) { ctx.fillStyle = 'rgba(138,164,255,.07)'; for (const j of cal.valid) ctx.fillRect(LX(j % nL) + 0.5, LY((j / nL) | 0) + 0.5, p * k - 1, p * k - 1); }
+  const dark = m && m.dark && !P.ignoreQE;
+  UI.nsat = 0; UI.ndrop = 0;
+  if (m && cal && !dark) {
+    let Imax = 0; for (const j of cal.valid) Imax = Math.max(Imax, cal.Iref[j]);
+    const tint = camTint(), rs = Math.max(1.1, 0.55 * D.spotR * k);
+    ctx.globalCompositeOperation = 'lighter';
+    for (let j = 0; j < nL * nL; j++) {
+      const I = m.I[j]; if (!(I > 0)) continue;
+      const b = Math.min(1, Math.sqrt(I / Imax)); if (b < 0.03) continue;
+      const jx = j % nL, jy = (j / nL) | 0;
+      const dx = (m.sx[j] - (cal.sref[j] || 0)) / D.M * HW.fMLA * UI.mag, dy = (m.sy[j] - (cal.srefy[j] || 0)) / D.M * HW.fMLA * UI.mag, lim = p / 2;
+      const x = cx + ((jx - (nL - 1) / 2) * p + clamp(dx, -lim, lim)) * k, y = cy - ((jy - (nL - 1) / 2) * p + clamp(dy, -lim, lim)) * k;
+      ctx.fillStyle = 'rgba(' + tint[0] + ',' + tint[1] + ',' + tint[2] + ',' + (0.22 * b).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(x, y, rs * 2.4, 0, 7); ctx.fill();
+      ctx.fillStyle = 'rgba(' + Math.min(255, tint[0] + 60) + ',' + Math.min(255, tint[1] + 60) + ',' + Math.min(255, tint[2] + 60) + ',' + b.toFixed(3) + ')'; ctx.beginPath(); ctx.arc(x, y, rs, 0, 7); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    for (let j = 0; j < nL * nL; j++) {
+      if (!m.sat[j]) continue;
+      ctx.strokeStyle = m.sat[j] === 1 ? T.bad : T.warn; ctx.lineWidth = 1.2;
+      ctx.strokeRect(LX(j % nL) + 1, LY((j / nL) | 0) + 1, p * k - 2, p * k - 2);
+      if (m.sat[j] === 1) UI.nsat++; else UI.ndrop++;
+    }
+  }
+  // DM electrodes where they land on the lenslets: shifted by (residual tilt x distance) when not conjugate
+  const tx = m ? m.truth.tx : 0, ty = m ? m.truth.ty : 0;
+  drawSegOutline(ctx, cx + D.M * tx * D.dzDM * k, cy - D.M * ty * D.dzDM * k, D.M * k, 'rgba(138,164,255,.6)', 1);
+  ctx.setLineDash([4, 3]); ctx.strokeStyle = 'rgba(214,222,220,.35)';
+  ctx.beginPath(); ctx.arc(cx, cy, D.M * Math.min(P.beamD, 17) / 2 * k, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(214,222,220,.25)'; ctx.strokeRect(cx - half * k, cy - half * k, 2 * half * k, 2 * half * k);
+  ctx.fillStyle = 'rgba(214,222,220,.7)'; ctx.font = '10px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+  ctx.fillText((zoom > 1.01 ? 'zoom ×' + zoom.toFixed(1) + ' · ' : '5.25 mm lenslet area · ') + 'spot shifts ×' + UI.mag, 6, 13);
+  if (dark) { ctx.fillStyle = 'rgba(240,107,91,.95)'; ctx.font = '600 14px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('No signal at ' + P.lambda + ' nm', cx, cy); }
+  if (UI.calib) { ctx.fillStyle = 'rgba(214,222,220,.9)'; ctx.font = '600 13px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Calibrating interaction matrix…', cx, h - 14); }
+  $('vWfs').textContent = cal ? cal.valid.length + ' valid' + (UI.ndrop ? ' · ' + UI.ndrop + ' dropped' : '') + (UI.nsat ? ' · ' + UI.nsat + ' saturated' : '') : '—';
+  let ban = '';
+  if (dark) ban = '<div class="banner bad">The WFS20-5C has a silicon sensor with no response at ' + P.lambda + ' nm, so the DM loop holds its last command. Tick “Ignore the WFS\'s silicon cutoff” to explore an IR-capable sensor.</div>';
+  else if (!P.ignoreQE && D.qe < 0.1) ban = '<div class="banner warn">Silicon response is only ~' + Math.round(D.qe / 0.7 * 100) + ' % of peak at ' + P.lambda + ' nm, so centroid noise rises.</div>';
+  if (Math.abs(D.dzW) >= 0.05) ban += '<div class="banner warn">WFS is ' + fmtS(D.dzW, 1) + ' mm from the DM image plane (' + lenFmt(D.dzDM) + ' at the DM). Its lenslets see a propagated, partly scintillated beam.</div>';
+  if ($('wfsBanner').innerHTML !== ban) $('wfsBanner').innerHTML = ban;
+}
+
+// ---------------- optical layout ----------------
+function drawLayout(tR) {
+  const cv = $('cvLayout');
+  const { ctx, w, dpr } = fit(cv);
+  const s = w / 1000; ctx.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
+  const W = 1000, H = 350;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = T.hole;
+  for (let y = 12; y < H; y += 25) for (let x = 12; x < W; x += 25) { ctx.beginPath(); ctx.arc(x, y, 1.3, 0, 7); ctx.fill(); }
+  const D = AO.derived(), R = D.R, M = D.M;
+  const yT = 84, yB = 214, xSrcR = 108, xC0 = 128, xC1 = 214, xF0 = 272;
+  const zmax = Math.max(D.d2, D.zc);
+  const sx = Math.min(2.3, (880 - xF0) / (P.d1 + R.f1 + R.f2 + zmax + 10));
+  const xDM = xF0, xL1 = xDM + P.d1 * sx, xFoc = xL1 + R.f1 * sx, xL2 = xL1 + (R.f1 + R.f2) * sx, xImg = xL2 + D.zc * sx, xW = xL2 + D.d2 * sx;
+  const gap = xW - xL2, xBS = xL2 + clamp(gap * 0.5, Math.min(9, gap / 2), gap - 9);
+  const hw = Math.max(1.4, 1.3 * Math.min(P.beamD, 17)), hw2 = Math.max(1.3, hw * M);
+  const bc = beamRGB(), bcs = (a) => 'rgba(' + bc[0] + ',' + bc[1] + ',' + bc[2] + ',' + a + ')';
+  const yCamL = yB + 58, yCam = yB + 104;
+  ctx.fillStyle = bcs(0.2); ctx.strokeStyle = bcs(0.55); ctx.lineWidth = 1;
+  const band = (x0, y0, x1, y1, a, b) => {
+    const L = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / L, uy = (y1 - y0) / L, px = -uy, py = ux;
+    ctx.beginPath(); ctx.moveTo(x0 + px * a, y0 + py * a); ctx.lineTo(x1 + px * b, y1 + py * b); ctx.lineTo(x1 - px * b, y1 - py * b); ctx.lineTo(x0 - px * a, y0 - py * a); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x0 + px * a, y0 + py * a); ctx.lineTo(x1 + px * b, y1 + py * b); ctx.moveTo(x0 - px * a, y0 - py * a); ctx.lineTo(x1 - px * b, y1 - py * b); ctx.stroke();
+  };
+  band(xSrcR, yT, xF0, yT, hw, hw); band(xF0, yT, xDM, yB, hw, hw); band(xDM, yB, xL1, yB, hw, hw);
+  band(xL1, yB, xFoc, yB, hw, 0.4); band(xFoc, yB, xL2, yB, 0.4, hw2); band(xL2, yB, xW, yB, hw2, hw2);
+  band(xBS, yB, xBS, yCamL, hw2, hw2); band(xBS, yCamL, xBS, yCam, hw2, 0.5);
+  // chamber
+  ctx.fillStyle = T.panel2; ctx.strokeStyle = T.ink; ctx.lineWidth = 1.2;
+  ctx.fillRect(xC0, yT - 34, xC1 - xC0, 68); ctx.strokeRect(xC0, yT - 34, xC1 - xC0, 68);
+  ctx.fillStyle = bcs(0.16); ctx.fillRect(xC0 + 1, yT - hw, xC1 - xC0 - 2, 2 * hw);
+  const flow = RM || !P.turbOn ? 0 : (tR * 0.001 * Math.min(40, 6 + D.v / 8)) % 60;
+  ctx.strokeStyle = hexA(T.muted, 0.7); ctx.lineWidth = 1;
+  for (let q = 0; q < 4; q++) {
+    const x0 = xC0 + 14 + q * 18; ctx.beginPath();
+    for (let y = yT - 30; y <= yT + 30; y += 2) { const X = x0 + 3 * Math.sin((y - flow * 2 + q * 7) * 0.22); if (y === yT - 30) ctx.moveTo(X, y); else ctx.lineTo(X, y); }
+    ctx.stroke();
+  }
+  ctx.strokeStyle = T.warn; ctx.lineWidth = 1.3; ctx.beginPath();
+  for (let q = 0; q <= 10; q++) { const x = xC0 + 16 + q * 5.4, y = yT + 30 - (q % 2 ? 4 : 0); if (q) ctx.lineTo(x, y); else ctx.moveTo(x, y); }
+  ctx.stroke();
+  const lab = (x, y, name, spec, align) => {
+    ctx.textAlign = align || 'center'; ctx.fillStyle = T.ink; ctx.font = '600 12.5px "Barlow Semi Condensed", sans-serif'; ctx.fillText(name, x, y);
+    if (spec) { ctx.fillStyle = T.muted; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.fillText(spec, x, y + 13); }
+  };
+  const r0l = r0At(P.lambda), fgl = fgAt(P.lambda);
+  lab((xC0 + xC1) / 2, yT - 42, 'Turbulence chamber', null);
+  lab((xC0 + xC1) / 2, yT + 50, P.turbOn ? 'r₀ ' + r0l.toFixed(1) + ' mm' : 'turbulence off', P.turbOn ? 'f_G ' + (fgl < 10 ? fgl.toFixed(1) : fgl.toFixed(0)) + ' Hz' : null);
+  // wavefront crests
+  const cut = (arr) => { const r = new Float32Array(ND); const j0 = ND / 2 - 1; for (let i = 0; i < ND; i++) r[i] = 0.5 * (arr[j0 * ND + i] + arr[(j0 + 1) * ND + i]); return r; };
+  const cIn = cut(Dsp.in), cRes = cut(Dsp.res), cTurb = new Float32Array(ND);
+  for (let i = 0; i < ND; i++) cTurb[i] = cIn[i] - 2e6 * S.th[0] * Dsp.x[i];
+  const rB = Math.min(P.beamD, 17) / 2;
+  const prof = (c, xmm) => { const f = (xmm + Dsp.ext / 2) / Dsp.dxd - 0.5, i = clamp(Math.floor(f), 0, ND - 2), t = f - i; return c[i] * (1 - t) + c[i + 1] * t; };
+  let rmsCut = 0, mc = 0, nIn = 0; for (let i = 0; i < ND; i++) if (Math.abs(Dsp.x[i]) <= rB) { rmsCut += cTurb[i] * cTurb[i]; mc += cTurb[i]; nIn++; }
+  nIn = Math.max(1, nIn); mc /= nIn; rmsCut = Math.sqrt(Math.max(1, rmsCut / nIn - mc * mc));
+  UI.exW = UI.exW ? UI.exW * 0.97 + 0.03 * (4 / Math.max(rmsCut, 8)) : 4 / Math.max(rmsCut, 8);
+  const ex = UI.exW, offs = RM ? 6 : (tR * 0.030) % 14;
+  ctx.lineWidth = 1.3; ctx.strokeStyle = bcs(0.95);
+  const crests = (x0, y0, x1, y1, halfW, c, inv) => {
+    const L = Math.hypot(x1 - x0, y1 - y0); if (L < 8) return;
+    const ux = (x1 - x0) / L, uy = (y1 - y0) / L, px = -uy, py = ux;
+    let mean = 0; if (c) { for (let q = 0; q <= 16; q++) mean += prof(c, (-1 + q / 8) * rB); mean /= 17; }
+    for (let sAl = offs; sAl < L - 2; sAl += 14) {
+      ctx.beginPath();
+      for (let q = 0; q <= 16; q++) {
+        const u = -1 + q / 8, d = c ? (prof(c, (inv ? -u : u) * rB) - mean) * ex : 0;
+        const X = x0 + ux * (sAl + d) + px * u * halfW, Y = y0 + uy * (sAl + d) + py * u * halfW;
+        if (q) ctx.lineTo(X, Y); else ctx.moveTo(X, Y);
+      }
+      ctx.stroke();
+    }
+  };
+  crests(xSrcR + 2, yT, xC0 - 2, yT, hw, null, false);
+  crests(xC1 + 4, yT, xF0 - 10, yT, hw, cTurb, false);
+  crests(xF0, yT + 10, xDM, yB - 10, hw, cIn, false);
+  crests(xDM + 10, yB, xL1 - 6, yB, hw, cRes, false);
+  crests(xL2 + 4, yB, xW - 3, yB, hw2, cRes, true);
+  // source
+  ctx.fillStyle = T.panel2; ctx.strokeStyle = T.ink; ctx.lineWidth = 1.2;
+  ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(8, yT - 20, 100, 40, 4); else ctx.rect(8, yT - 20, 100, 40); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = bcs(1); ctx.beginPath(); ctx.arc(20, yT, 4, 0, 7); ctx.fill();
+  ctx.fillStyle = T.ink; ctx.font = '600 12px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = 'left'; ctx.fillText('Tunable laser', 29, yT + 4);
+  lab(58, yT + 36, P.lambda + ' nm', 'Ø ' + P.beamD.toFixed(1) + ' mm');
+  // FSM
+  const thE = clamp(S.th[0] * 3000, -0.35, 0.35), Lm = 21;
+  ctx.save(); ctx.translate(xF0, yT); ctx.rotate(Math.PI / 4 + thE);
+  ctx.fillStyle = T.faint; ctx.fillRect(-Lm, -7, 2 * Lm, 5);
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-Lm, 0); ctx.lineTo(Lm, 0); ctx.stroke();
+  ctx.restore();
+  lab(xF0 + 34, yT - 30, 'FSM · PI S-330', '±5 mrad · 1.6 kHz', 'left');
+  ctx.fillStyle = T.muted; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+  ctx.fillText('θ ' + fmtS(S.th[0] * 1e6, 0) + ', ' + fmtS(S.th[1] * 1e6, 0) + ' µrad', xF0 + 34, yT - 4);
+  // DM with surface profile
+  const cS = cut(Dsp.surf); let smx = 0.03, smn = 0; for (let i = 0; i < ND; i++) smn += cS[i]; smn /= ND; for (let i = 0; i < ND; i++) smx = Math.max(smx, Math.abs(cS[i] - smn));
+  const exS = 5 / smx;
+  ctx.save(); ctx.translate(xDM, yB); ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = T.faint; ctx.fillRect(-24, 2, 48, 6);
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 2.2; ctx.beginPath();
+  for (let q = 0; q <= 28; q++) { const u = -1 + q / 14, xmm = u * HW.mirrorR, y = -(prof(cS, xmm) - smn) * exS; const X = u * 24; if (q) ctx.lineTo(X, y); else ctx.moveTo(X, y); }
+  ctx.stroke(); ctx.restore();
+  lab(xDM - 6, yB + 44, 'DM · DMH40', '40 seg · Ø14 mm pupil');
+  const lens = (x, y, hh, vertical) => {
+    ctx.fillStyle = 'rgba(150,180,200,.25)'; ctx.strokeStyle = T.ink; ctx.lineWidth = 1.1; ctx.beginPath();
+    if (!vertical) { ctx.moveTo(x, y - hh); ctx.quadraticCurveTo(x + hh * 0.28, y, x, y + hh); ctx.quadraticCurveTo(x - hh * 0.28, y, x, y - hh); }
+    else { ctx.moveTo(x - hh, y); ctx.quadraticCurveTo(x, y + hh * 0.28, x + hh, y); ctx.quadraticCurveTo(x, y - hh * 0.28, x - hh, y); }
+    ctx.fill(); ctx.stroke();
+  };
+  lens(xL1, yB, 26, false); lens(xL2, yB, 13, false);
+  lab(xL1, yB + 44, 'L1', 'f = ' + R.f1 + ' mm'); lab(xL2 - 8, yB - 34, 'L2', 'f = ' + R.f2 + ' mm', 'right');
+  ctx.fillStyle = bcs(0.9); ctx.beginPath(); ctx.arc(xFoc, yB, 1.8, 0, 7); ctx.fill();
+  ctx.strokeStyle = T.ok; ctx.setLineDash([3, 3]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(xImg, yB - 52); ctx.lineTo(xImg, yB + 30); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = T.ok; ctx.font = '600 11px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('DM image plane', xImg, yB - 56);
+  const bs = 8;
+  ctx.fillStyle = 'rgba(150,180,200,.22)'; ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.fillRect(xBS - bs, yB - bs, 2 * bs, 2 * bs); ctx.strokeRect(xBS - bs, yB - bs, 2 * bs, 2 * bs);
+  ctx.beginPath(); ctx.moveTo(xBS - bs, yB - bs); ctx.lineTo(xBS + bs, yB + bs); ctx.stroke();
+  lens(xBS, yCamL, 11, true);
+  ctx.fillStyle = T.panel2; ctx.strokeStyle = T.ink; ctx.fillRect(xBS - 18, yCam, 36, 12); ctx.strokeRect(xBS - 18, yCam, 36, 12);
+  lab(xBS + 24, yCam + 4, 'Camera', 'far field · 1 kHz tilt', 'left');
+  ctx.fillStyle = T.muted; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'right'; ctx.fillText('BS 50:50', xBS - 16, yCamL - 12);
+  ctx.fillStyle = T.panel2; ctx.strokeStyle = T.ink; ctx.lineWidth = 1.2; ctx.fillRect(xW + 3, yB - 24, 24, 48); ctx.strokeRect(xW + 3, yB - 24, 24, 48);
+  ctx.lineWidth = 1.4; ctx.beginPath(); for (let q = 0; q < 8; q++) { const y0 = yB - 20 + q * 5; ctx.moveTo(xW, y0); ctx.quadraticCurveTo(xW - 2.4, y0 + 2.5, xW, y0 + 5); } ctx.stroke();
+  const conj = Math.abs(D.dzW) < 0.05;
+  lab(xW + 33, yB - 8, 'WFS20-5C', '35×35 · 150 µm', 'left');
+  if (!conj) {
+    const yA = yB + 30; ctx.strokeStyle = T.warn; ctx.fillStyle = T.warn; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(xImg, yA); ctx.lineTo(xW, yA); ctx.stroke();
+    const dir = Math.sign(xW - xImg) || 1; ctx.beginPath(); ctx.moveTo(xW, yA); ctx.lineTo(xW - dir * 5, yA - 3); ctx.lineTo(xW - dir * 5, yA + 3); ctx.fill();
+    ctx.font = '600 11px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+    ctx.fillText('Δz ' + fmtS(D.dzW, 1) + ' mm', xW + 33, yB + 22); ctx.fillText('= ' + lenFmt(D.dzDM) + ' at DM', xW + 33, yB + 35);
+  } else { ctx.fillStyle = T.ok; ctx.font = '600 11px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = 'left'; ctx.fillText('conjugate to the DM', xW + 33, yB + 24); }
+  // controller + the two loops
+  const on = P.closed, rx = 790, ry = 14, rw = 190, rh = 42;
+  ctx.fillStyle = T.panel2; ctx.strokeStyle = on ? T.accent : T.rule; ctx.lineWidth = 1.2; ctx.fillRect(rx, ry, rw, rh); ctx.strokeRect(rx, ry, rw, rh);
+  ctx.fillStyle = T.ink; ctx.font = '600 12.5px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = 'left'; ctx.fillText('Loop controller', rx + 10, ry + 17);
+  ctx.fillStyle = T.muted; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.fillText('DM ' + P.loopHz + ' Hz · FSM 1 kHz', rx + 10, ry + 32);
+  ctx.fillStyle = on ? T.ok : T.faint; ctx.beginPath(); ctx.arc(rx + rw - 12, ry + 13, 4, 0, 7); ctx.fill();
+  ctx.setLineDash([5, 4]); ctx.lineDashOffset = on && !RM ? -(tR * 0.02) % 9 : 0;
+  ctx.strokeStyle = on ? T.accent : T.faint; ctx.globalAlpha = on ? 0.9 : 0.5; ctx.lineWidth = 1.3;
+  const xWc = xW + 15, direct = xWc >= rx + 10 && xWc <= rx + rw - 10;
+  ctx.beginPath();
+  if (direct) { ctx.moveTo(xWc, yB - 24); ctx.lineTo(xWc, ry + rh); }
+  else { ctx.moveTo(xWc, yB - 24); ctx.lineTo(xWc, 110); ctx.lineTo(rx + 100, 110); ctx.lineTo(rx + 100, ry + rh); }
+  ctx.moveTo(rx, ry + 28); ctx.lineTo(xDM - 34, ry + 28); ctx.lineTo(xDM - 34, yT - 16); ctx.moveTo(xDM - 34, yT + 16); ctx.lineTo(xDM - 34, yB + 20); ctx.lineTo(xDM - 16, yB + 20);
+  ctx.moveTo(rx, ry + 12); ctx.lineTo(xF0 + 20, ry + 12); ctx.lineTo(xF0 + 20, yT - 22);
+  ctx.moveTo(xBS - 18, yCam + 6); ctx.lineTo(xBS - 60, yCam + 6); ctx.lineTo(xBS - 60, 124); ctx.lineTo(rx + 150, 124); ctx.lineTo(rx + 150, ry + rh);
+  ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+  ctx.fillStyle = on ? T.accent : T.faint; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+  ctx.fillText('1 kHz', rx + 154, 120); ctx.fillText(P.loopHz + ' Hz', (direct ? xWc : rx + 100) + 4, 84);
+}
+
+// ---------------- charts ----------------
+function drawChart() {
+  const { ctx, w, h } = fit($('cvChart'));
+  ctx.clearRect(0, 0, w, h);
+  const hist = S.hist, tNow = S.t, span = 1.0, t0 = tNow - span;
+  const L = 44, Rr = 10, top = 8, midGap = 22, h1 = Math.round((h - top - midGap - 18) * 0.62), h2 = h - top - midGap - 18 - h1;
+  const y1 = top, y2 = top + h1 + midGap;
+  const X = (t) => L + (t - t0) / span * (w - L - Rr);
+  const pts = hist.filter((e) => e.t >= t0 - 0.01);
+  ctx.fillStyle = T.rule2;
+  let runStart = null;
+  for (let i = 0; i <= pts.length; i++) {
+    const e = pts[i], open = e ? !e.closed : false;
+    if (open && runStart === null) runStart = Math.max(t0, e.t);
+    if (!open && runStart !== null) { const te = e ? e.t : tNow; ctx.fillRect(X(runStart), y1, X(te) - X(runStart), h1); ctx.fillRect(X(runStart), y2, X(te) - X(runStart), h2); runStart = null; }
+  }
+  let vmax = 500; for (const e of pts) vmax = Math.max(vmax, e.rms * 2.2, (e.inHO || 0) * 2.2);
+  const lmin = 1, lmax = Math.log10(Math.min(2e4, vmax));
+  const Y1 = (v) => y1 + h1 - (Math.log10(clamp(v, 10, 2e4)) - lmin) / (lmax - lmin) * h1;
+  ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.fillStyle = T.muted; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'right';
+  for (const v of [10, 30, 100, 300, 1000, 3000, 10000]) { if (Math.log10(v) > lmax + 1e-6) break; const y = Y1(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - Rr, y); ctx.stroke(); ctx.fillText(v >= 1000 ? v / 1000 + 'µm' : String(v), L - 5, y + 3.5); }
+  const line = (key, color, width, dash, Yf) => {
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []); ctx.beginPath(); let st = false;
+    for (const e of pts) { const v = e[key]; if (!(v >= 0) || !isFinite(v)) { st = false; continue; } const x = X(e.t), y = Yf(v); if (st) ctx.lineTo(x, y); else { ctx.moveTo(x, y); st = true; } }
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+  line('rms', T.faint, 1.2, [3, 3], Y1);
+  line('inHO', T.warn, 1.8, null, Y1);
+  line('rmsHO', T.accent, 1.9, null, Y1);
+  ctx.textAlign = 'left'; ctx.font = '11px Barlow, sans-serif';
+  const leg = [['Before DM', T.warn, null], ['After DM', T.accent, null], ['After DM incl. residual tip/tilt', T.faint, [3, 3]]];
+  let lx = L + 6;
+  for (const [txt, c, d] of leg) { ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.setLineDash(d || []); ctx.beginPath(); ctx.moveTo(lx, y1 + 9); ctx.lineTo(lx + 16, y1 + 9); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = T.muted; ctx.fillText(txt, lx + 20, y1 + 12.5); lx += ctx.measureText(txt).width + 34; }
+  ctx.save(); ctx.translate(11, y1 + h1 / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillStyle = T.muted; ctx.font = '10.5px Barlow, sans-serif'; ctx.fillText('nm rms (log)', 0, 0); ctx.restore();
+  const Y2 = (v) => y2 + h2 - clamp(v, 0, 1) * h2;
+  ctx.strokeStyle = T.rule; ctx.fillStyle = T.muted; ctx.textAlign = 'right'; ctx.font = '10.5px "IBM Plex Mono", monospace';
+  for (const v of [0, 0.5, 1]) { const y = Y2(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - Rr, y); ctx.stroke(); ctx.fillText(v.toFixed(1), L - 5, y + 3.5); }
+  ctx.globalAlpha = 0.14; ctx.beginPath(); let started = false, lastx = L;
+  for (const e of pts) { const x = X(e.t); if (!started) { ctx.moveTo(x, Y2(0)); started = true; } ctx.lineTo(x, Y2(e.strehl)); lastx = x; }
+  if (started) { ctx.lineTo(lastx, Y2(0)); ctx.closePath(); ctx.fillStyle = T.ok; ctx.fill(); }
+  ctx.globalAlpha = 1;
+  line('strehl', T.ok, 1.8, null, Y2);
+  if (pts.length) { const e = pts[pts.length - 1]; ctx.fillStyle = T.ok; ctx.beginPath(); ctx.arc(X(e.t), Y2(e.strehl), 3, 0, 7); ctx.fill(); }
+  ctx.save(); ctx.translate(11, y2 + h2 / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillStyle = T.muted; ctx.font = '10.5px Barlow, sans-serif'; ctx.fillText('Strehl', 0, 0); ctx.restore();
+  ctx.fillStyle = T.muted; ctx.textAlign = 'center'; ctx.font = '10.5px "IBM Plex Mono", monospace';
+  const tick0 = Math.ceil(t0 / 0.2) * 0.2;
+  for (let t = tick0; t <= tNow + 1e-9; t += 0.2) { const x = X(t); if (x < L + 8) continue; ctx.fillText(t.toFixed(1) + ' s', x, h - 4); }
+}
+
+function drawFsm() {
+  if (!$('fsmDetails').open) return;
+  const { ctx, w, h } = fit($('cvFsm'));
+  ctx.clearRect(0, 0, w, h);
+  const tr = S.trace, n = Math.min(tr.i, tr.n), tNow = S.t, span = 0.02, t0 = tNow - span;
+  const L = 44, Rr = 10, top = 6, bot = 16, ph = h - top - bot;
+  const X = (t) => L + (t - t0) / span * (w - L - Rr);
+  const idx = []; for (let k = 0; k < n; k++) { const i = (tr.i - n + k) % tr.n; if (tr.t[i] >= t0) idx.push(i); }
+  let lo = Infinity, hi = -Infinity; for (const i of idx) { lo = Math.min(lo, tr.u[i], tr.th[i]); hi = Math.max(hi, tr.u[i], tr.th[i]); }
+  if (!isFinite(lo)) { lo = -1e-6; hi = 1e-6; }
+  const pad = Math.max(2e-7, (hi - lo) * 0.15); lo -= pad; hi += pad;
+  const Y = (v) => top + ph - (v - lo) / (hi - lo) * ph;
+  ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.fillStyle = T.muted; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'right';
+  for (const v of [lo + pad, hi - pad]) { const y = Y(v); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(w - Rr, y); ctx.stroke(); ctx.fillText((v * 1e6).toFixed(1), L - 5, y + 3.5); }
+  const pl = (arr, c, wd) => { ctx.strokeStyle = c; ctx.lineWidth = wd; ctx.beginPath(); idx.forEach((i, k) => { const x = X(tr.t[i]), y = Y(arr[i]); if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.stroke(); };
+  pl(tr.u, T.faint, 1.3); pl(tr.th, T.accent, 1.6);
+  ctx.textAlign = 'center';
+  for (let k = 0; k <= 4; k++) ctx.fillText('−' + (20 - k * 5) + ' ms', X(t0 + k * 0.005), h - 3);
+  ctx.textAlign = 'left'; ctx.font = '11px Barlow, sans-serif';
+  ctx.strokeStyle = T.faint; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(L + 6, top + 8); ctx.lineTo(L + 20, top + 8); ctx.stroke(); ctx.fillStyle = T.muted; ctx.fillText('command', L + 24, top + 11.5);
+  ctx.strokeStyle = T.accent; ctx.beginPath(); ctx.moveTo(L + 90, top + 8); ctx.lineTo(L + 104, top + 8); ctx.stroke(); ctx.fillText('mirror angle (µrad, mech., x)', L + 108, top + 11.5);
+}
+
+// ---------------- conjugation figure ----------------
+function drawConj(tR) {
+  const cv = $('cvConj'); const { ctx, w, dpr } = fit(cv);
+  const s = w / 1000; ctx.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
+  const W = 1000, H = 300; ctx.clearRect(0, 0, W, H);
+  const D = AO.derived(), R = D.R, yA = 142;
+  const zL1 = P.d1, zL2 = zL1 + R.f1 + R.f2, zImg = zL2 + D.zc, zW = zL2 + D.d2;
+  const zEnd = Math.max(D.d2, D.zc) * 1.12 + 6;
+  const x0 = 40, xs = 520, xe = W - 70;
+  const X = (z) => z <= zL2 ? x0 + z / zL2 * (xs - x0) : xs + (z - zL2) / zEnd * (xe - xs);
+  const Dm = Math.min(P.beamD, 14), sy = 70 / Dm, aMax = 24 / (P.d1 * sy);
+  const trace = (h0, a0) => { const pts = []; let hh = h0, a = a0;
+    pts.push([0, hh]); hh += a * zL1; pts.push([zL1, hh]); a -= hh / R.f1;
+    hh += a * (R.f1 + R.f2); pts.push([zL2, hh]); a -= hh / R.f2;
+    for (const z of [zImg, zW].filter((z) => z > zL2).sort((p, q) => p - q)) pts.push([z, hh + a * (z - zL2)]);
+    pts.push([zL2 + zEnd, hh + a * zEnd]); return pts; };
+  const hAt = (pts, z) => { for (let i = 1; i < pts.length; i++) if (z <= pts[i][0] + 1e-9) { const [za, ha] = pts[i - 1], [zb, hb] = pts[i]; return ha + (hb - ha) * (z - za) / Math.max(1e-9, zb - za); } return pts[pts.length - 1][1]; };
+  const beam = (a, fill, stroke, lw) => {
+    const up = trace(Dm / 2, a), dn = trace(-Dm / 2, a);
+    ctx.beginPath(); up.forEach(([z, hh], i) => { const px = X(z), py = yA - hh * sy; if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); });
+    for (let i = dn.length - 1; i >= 0; i--) ctx.lineTo(X(dn[i][0]), yA - dn[i][1] * sy);
+    ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = stroke; ctx.lineWidth = lw || 1; ctx.stroke();
+    return { up, dn };
+  };
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 26, W, H - 64); ctx.clip();
+  const grey = (a) => hexA(T.muted, a);
+  beam(-aMax, grey(0.08), grey(0.45)); beam(aMax, grey(0.08), grey(0.45)); beam(0, grey(0.10), grey(0.6));
+  const sw = RM ? 0.7 : Math.sin(tR * 0.0016);
+  const live = beam(sw * aMax, hexA(T.accent, 0.18), T.accent, 1.4);
+  ctx.restore();
+  ctx.strokeStyle = T.rule; ctx.lineWidth = 1; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(x0 - 14, yA); ctx.lineTo(W - 20, yA); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = T.faint; ctx.font = '10.5px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  ctx.fillText('after L2: horizontal scale ×' + ((xe - xs) / zEnd / ((xs - x0) / zL2)).toFixed(1), xs + 90, H - 44);
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x0, yA - 7 * sy - 2); ctx.lineTo(x0, yA + 7 * sy + 2); ctx.stroke();
+  const vlens = (z, hh) => { const px = X(z); ctx.fillStyle = 'rgba(150,180,200,.28)'; ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, yA - hh); ctx.quadraticCurveTo(px + hh * 0.16, yA, px, yA + hh); ctx.quadraticCurveTo(px - hh * 0.16, yA, px, yA - hh); ctx.fill(); ctx.stroke(); };
+  vlens(zL1, 92); vlens(zL2, 40);
+  const xi = X(zImg), xw = X(zW);
+  ctx.strokeStyle = T.ok; ctx.setLineDash([4, 3]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(xi, 34); ctx.lineTo(xi, H - 58); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(xw, yA - 52); ctx.lineTo(xw, yA + 52); ctx.stroke();
+  ctx.lineWidth = 1; for (let q = -7; q <= 7; q++) { ctx.beginPath(); ctx.moveTo(xw, yA + q * 7); ctx.lineTo(xw - 3, yA + q * 7); ctx.stroke(); }
+  const hu = hAt(live.up, zW), hd = hAt(live.dn, zW), clampY = (y) => clamp(y, 30, H - 60);
+  ctx.fillStyle = T.accent; ctx.fillRect(xw + 6, clampY(yA - hu * sy), 6, Math.max(1.5, clampY(yA - hd * sy) - clampY(yA - hu * sy)));
+  const u0 = hAt(trace(Dm / 2, 0), zW), d0 = hAt(trace(-Dm / 2, 0), zW);
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.strokeRect(xw + 15, yA - u0 * sy, 6, Math.max(1.5, (u0 - d0) * sy));
+  const lb = (x, y, t, c, al) => { ctx.fillStyle = c || T.ink; ctx.font = '600 13px "Barlow Semi Condensed", sans-serif'; ctx.textAlign = al || 'center'; ctx.fillText(t, x, y); };
+  lb(x0, H - 22, 'DM'); lb(X(zL1), H - 22, 'L1 · f ' + R.f1); lb(X(zL2), H - 22, 'L2 · f ' + R.f2);
+  lb(xi, 22, 'DM image plane', T.ok);
+  const close = Math.abs(xw - xi) < 60;
+  lb(xw + (close ? 26 : 0), H - (close ? 6 : 22), 'WFS', T.ink, close ? 'left' : 'center');
+  ctx.fillStyle = T.muted; ctx.font = '11px "IBM Plex Mono", monospace'; ctx.textAlign = 'center';
+  ctx.fillText(D.zc.toFixed(1) + ' mm', (X(zL2) + xi) / 2, yA + 64);
+  if (Math.abs(D.dzW) >= 0.05) { ctx.fillStyle = T.warn; ctx.fillText('Δz ' + fmtS(D.dzW, 1) + ' mm', (xi + xw) / 2 + (close ? 40 : 0), yA + 80); }
+}
+
+function conjNumbers() {
+  const D = AO.derived(), lam = P.lambda * 1e-6, r0l = r0At(P.lambda);
+  const fres = Math.sqrt(lam * Math.abs(D.dzDM)), ratio = fres / r0l;
+  const lim = D.M * D.M * r0l * r0l / lam;
+  const m = S.meas, tilt = m ? Math.hypot(m.truth.tx, m.truth.ty) : 0, walkW = tilt * Math.abs(D.dzDM) * D.M;
+  const col = ratio < 0.9 ? 'var(--ok)' : ratio < 1.1 ? 'var(--warn)' : 'var(--bad)';
+  const rows = [
+    ['DM image plane', D.zc.toFixed(1) + ' mm behind L2'],
+    ['WFS offset → at the DM (÷M²)', fmtS(D.dzW, 1) + ' mm → ' + lenFmt(D.dzDM)],
+    ['Fresnel scale √(λΔz<sub>DM</sub>) vs r₀', '<span style="color:' + col + '">' + fres.toFixed(2) + ' mm</span> vs ' + r0l.toFixed(2) + ' mm'],
+    ['Limit M²r₀²/λ at the WFS', '±' + (lim < 1000 ? lim.toFixed(0) + ' mm' : (lim / 1000).toFixed(1) + ' m')],
+    ['Walk from the live residual tilt (' + (tilt * 1e6).toFixed(1) + ' µrad)', (walkW * 1000).toFixed(1) + ' µm = ' + (walkW / HW.lensPitch).toFixed(2) + ' lenslet'],
+  ];
+  const html = rows.map(([k, v]) => '<span>' + k + '</span><span>' + v + '</span>').join('');
+  if ($('conjNums').innerHTML !== html) $('conjNums').innerHTML = html;
+}
+
+// ---------------- readouts ----------------
+function avgHist(key, tspan, closedOnly) {
+  let s = 0, n = 0; for (let i = S.hist.length - 1; i >= 0; i--) { const e = S.hist[i]; if (e.t < S.t - tspan) break; if (closedOnly && !e.closed) continue; if (isFinite(e[key])) { s += e[key]; n++; } }
+  return n ? s / n : NaN;
+}
+const NOLL = [1.0299, 0.582, 0.134, 0.111, 0.0880, 0.0648, 0.0587, 0.0525, 0.0463, 0.0401, 0.0377, 0.0352, 0.0328, 0.0304, 0.0279, 0.0267, 0.0255, 0.0243, 0.0232, 0.0220, 0.0208];
+const nollDelta = (J) => J <= 21 ? NOLL[J - 1] : 0.2944 * Math.pow(J, -Math.sqrt(3) / 2);
+function readouts() {
+  const D = AO.derived(), m = S.meas;
+  $('stT').textContent = S.t.toFixed(3) + ' s'; $('stF').textContent = String(S.frame);
+  const rt = UI.paused ? 'paused' : UI.calib ? 'calibrating' : UI.rate.toFixed(UI.rate < 0.095 ? 3 : 2) + '×';
+  $('stRate').textContent = rt; $('oSpeedAct').textContent = UI.paused || UI.calib ? rt : 'actual ' + rt;
+  if (m) {
+    const st = avgHist('strehl', 0.05), rb = avgHist('inHO', 0.05), rh = avgHist('rmsHO', 0.05), r = avgHist('rms', 0.05);
+    $('nS').textContent = isFinite(st) ? st.toFixed(2) : '—';
+    $('nSd').textContent = 'on-axis · ' + P.lambda + ' nm';
+    $('nB').textContent = isFinite(rb) ? nmFmt(rb) : '—';
+    $('nR').textContent = isFinite(rh) ? nmFmt(rh) : '—';
+    $('nRd').textContent = 'tip/tilt removed · ' + (isFinite(r) ? nmFmt(r) : '—') + ' with';
+    const f = Math.hypot(S.th[0], S.th[1]);
+    $('nF').textContent = (f * 1e6).toFixed(0) + ' µrad';
+    $('nFd').textContent = (100 * Math.max(Math.abs(S.th[0]), Math.abs(S.th[1])) / HW.fsmRange).toFixed(1) + ' % of ±5 mrad';
+  }
+  const cal = S.calib, lam = P.lambda, radNm = lam / (2 * Math.PI);
+  const J = 3 + (cal ? cal.kept : P.modes);
+  const sfit2 = nollDelta(J) * Math.pow(D.dOverR0, 5 / 3);
+  const fc = P.gain * P.loopHz / (2 * Math.PI);
+  const sserv2 = P.gain > 0 ? Math.pow(D.fGl / fc, 5 / 3) : Infinity;
+  const mar = Math.exp(-(sfit2 + sserv2));
+  const measS = avgHist('strehl', 0.3, true);
+  const rows = [
+    ['h', 'Sampling'],
+    ['Lenslets across beam', D.subapsAcross.toFixed(1)],
+    ['Valid lenslets · slopes', cal ? cal.valid.length + ' · ' + 2 * cal.valid.length : '—'],
+    ['DM segments', '24 in pupil + 16 outside'],
+    ['Spot radius · half pitch', (D.spotR * 1000).toFixed(0) + ' · 75 µm'],
+    ['WFS range, local tilt at DM', '±' + (D.dynR / HW.fMLA * D.M * 1e3).toFixed(2) + ' mrad'],
+    ['λ/D', (D.lamOverD * 1e6).toFixed(0) + ' µrad'],
+    ['h', 'Chamber turbulence at ' + lam + ' nm'],
+    ['r₀ · D/r₀', D.r0l.toFixed(2) + ' mm · ' + D.dOverR0.toFixed(1)],
+    ['Greenwood f_G', D.fGl.toFixed(1) + ' Hz'],
+    ['Crosswind (frozen flow)', D.v >= 1000 ? (D.v / 1000).toFixed(2) + ' m/s' : D.v.toFixed(0) + ' mm/s'],
+    ['DM loop delay (sample → DM)', (P.delayFrames * 1000 / P.loopHz).toFixed(1) + ' ms'],
+    ['FSM', 'camera centroid, 1 kHz'],
+    ['FSM beam walk on DM', (2 * Math.hypot(S.th[0], S.th[1]) * HW.L_FSM_DM * 1000).toFixed(1) + ' µm'],
+    ['h', 'Rule-of-thumb budget (Kolmogorov)'],
+    ['Modal fitting, Noll Δ_J (J = ' + J + ')', (Math.sqrt(sfit2) * radNm).toFixed(0) + ' nm'],
+    ['Servo (f_G/f_c)^5/3, f_c ≈ gf/2π', isFinite(sserv2) ? (Math.sqrt(sserv2) * radNm).toFixed(0) + ' nm · f_c ' + fc.toFixed(0) + ' Hz' : '—'],
+    ['Maréchal S · simulated S', mar.toFixed(2) + ' · ' + (isFinite(measS) ? measS.toFixed(2) : '—')],
+  ];
+  const html = rows.map((r) => r[0] === 'h' ? '<h4>' + r[1] + '</h4>' : '<div class="kv"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('');
+  if ($('budget').innerHTML !== html) $('budget').innerHTML = html;
+  const bc = beamRGB(); $('legBeam').querySelector('i').style.borderTop = '6px solid rgba(' + bc[0] + ',' + bc[1] + ',' + bc[2] + ',.45)';
+  $('legBeam').lastChild.textContent = P.lambda > 700 ? 'beam (' + P.lambda + ' nm, false colour)' : 'beam (' + P.lambda + ' nm)';
+}
+
+// ---------------- main loop ----------------
+let lastTs = 0;
+function frame(ts) {
+  const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 0.016; lastTs = ts; UI.frameN++;
+  if (UI.ready) {
+    if (UI.calib) stepCalibration();
+    else if (!UI.paused) {
+      const want = dt * UI.timeScale;
+      let tgt = want;
+      if (UI.pendingClose != null && S.t + tgt >= UI.pendingClose) tgt = Math.max(0, UI.pendingClose - S.t);
+      if (UI.autoClose && S.t + tgt >= 0.25) tgt = Math.max(0, 0.25 - S.t);
+      const got = tgt > 0 ? AO.advance(tgt, 13) : 0;
+      if (want > 0) UI.rate = UI.rate * 0.9 + 0.1 * (tgt < want - 1e-9 && got >= tgt - 1e-9 ? UI.timeScale : got / dt);
+      if (UI.pendingClose != null && S.t >= UI.pendingClose - 1e-9) { UI.pendingClose = null; AO.setLoop(true); AO.resetLong(); refreshLoopBtn(); toast('Loops closed'); }
+      if (UI.autoClose && S.t >= 0.25 - 1e-9) { UI.autoClose = false; AO.setLoop(true); AO.resetLong(); refreshLoopBtn(); toast('Loops closed automatically. Use the button to open them again.'); }
+      if (got > 0) UI.dirty = true;
+    }
+    if (UI.dirty) { AO.display(); UI.dirty = false; }
+    try {
+      drawLayout(ts); drawMaps(); drawCamera(); drawWFS(); drawChart(); drawFsm(); drawConj(ts);
+      if (UI.frameN % 5 === 0) { readouts(); conjNumbers(); }
+    } catch (err) { console.error(err); }
+  }
+  requestAnimationFrame(frame);
+}
+function boot() {
+  AO.genScreen(7); AO.setupGrid();
+  P.d2 = AO.derived().zc;
+  AO.calibrate();
+  syncControls(); refreshLoopBtn(); drawColorbars();
+  UI.ready = true; UI.dirty = true;
+  $('loading').hidden = true;
+  readouts(); conjNumbers();
+}
+window.addEventListener('resize', () => { drawColorbars(); UI.dirty = true; });
+readTheme(); syncControls(); refreshLoopBtn();
+requestAnimationFrame(frame);
+setTimeout(boot, 60);
+})();
+
+</script>
+</body>
+</html>
