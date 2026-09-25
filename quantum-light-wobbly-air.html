@@ -1,0 +1,1087 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+<title>Quantum Light, Wobbly Air</title>
+<meta name="description" content="Interactive explainer: quantum key distribution with polarized photons, satellite-to-ground links, atmospheric turbulence and the Fried parameter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0A0F24; --bg2:#0E1530; --panel:#131B3A; --panel2:#18214A; --line:#27315C;
+  --text:#E9ECF8; --muted:#A8AFD4; --dim:#6F78A6;
+  --amber:#F5B841; --teal:#4FD1C5; --rose:#FF6B81; --beam:#FF7A59; --good:#7BE0A0; --violet:#8C9BFF;
+  --display:'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body:'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+html{background:var(--bg)}
+body{background:var(--bg); color:var(--text); font-family:var(--body); font-size:17px; line-height:1.5}
+.wrap{max-width:1280px; margin:0 auto; padding-inline:20px; padding-block:10px 36px}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+
+/* header */
+.top{display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding-block:12px 14px; border-bottom:1px solid var(--line); margin-bottom:22px}
+.brand{display:flex; align-items:center; gap:10px; margin-right:auto}
+.brand svg{flex:none}
+.brand-name{font-family:var(--display); font-weight:800; font-size:20px; letter-spacing:-0.01em; white-space:nowrap}
+.tabs{display:flex; flex-wrap:wrap; gap:6px}
+.tab{display:flex; align-items:center; gap:8px; background:transparent; border:1px solid var(--line); border-radius:999px; padding:6px 14px 6px 6px; cursor:pointer; color:var(--muted); font-size:15px}
+.tab .n{display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:var(--panel2); font-family:var(--mono); font-size:12px; color:var(--muted)}
+.tab:hover{color:var(--text); border-color:var(--dim)}
+.tab[aria-selected="true"]{background:var(--panel2); color:var(--text); border-color:var(--amber)}
+.tab[aria-selected="true"] .n{background:var(--amber); color:#1A1400}
+.fs{background:transparent; border:1px solid var(--line); border-radius:10px; padding:7px 10px; cursor:pointer; color:var(--muted); display:flex; gap:6px; align-items:center; font-size:14px}
+.fs:hover{color:var(--text)}
+
+/* chapter */
+.chap-head{display:flex; gap:16px; align-items:center; margin-bottom:16px}
+.chap-head h2{margin:0}
+.chap-num{flex:none; font-family:var(--display); font-weight:800; font-size:56px; line-height:0.9; color:var(--amber); opacity:.9}
+h2{font-family:var(--display); font-weight:700; font-size:clamp(26px,3.4vw,40px); line-height:1.1; letter-spacing:-0.015em; margin:0 0 6px; text-wrap:balance}
+.explain{margin-top:26px; padding-top:18px; border-top:1px solid var(--line)}
+.lead{margin:0; color:var(--text); font-size:clamp(16px,1.5vw,19px); max-width:72ch}
+.explain .hint{margin-top:10px}
+.layout{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:16px; align-items:stretch}
+.layout.full{grid-template-columns:minmax(0,1fr)}
+@media (max-width:920px){ .layout{grid-template-columns:minmax(0,1fr)} }
+.stage{position:relative; background:var(--bg2); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+.stage canvas{display:block; width:100%; height:clamp(290px,54vh,580px); touch-action:pan-y}
+.stage .tag{position:absolute; left:12px; top:10px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); pointer-events:none}
+.side{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:16px}
+.side h3, .mini-title{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin:0 0 8px; font-weight:600}
+
+.controls{display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center; margin-top:14px}
+.btn{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:9px 14px; cursor:pointer; font-size:15px; display:inline-flex; gap:8px; align-items:center; transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--dim)}
+.btn.primary{background:var(--amber); color:#1A1400; border-color:var(--amber); font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn[aria-pressed="true"]{background:var(--panel2); border-color:var(--amber)}
+.btn[aria-pressed="true"] .dot{background:var(--amber); box-shadow:0 0 8px var(--amber)}
+.btn.eve[aria-pressed="true"]{border-color:var(--rose)}
+.btn.eve[aria-pressed="true"] .dot{background:var(--rose); box-shadow:0 0 8px var(--rose)}
+.btn .dot{width:9px; height:9px; border-radius:50%; background:var(--dim)}
+.btn.ghost{background:transparent}
+.seg{display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel)}
+.seg .seg-l{padding:0 10px; font-size:13px; color:var(--muted); white-space:nowrap}
+.seg button{background:transparent; border:0; border-left:1px solid var(--line); padding:8px 12px; cursor:pointer; font-size:15px; color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel2); color:var(--text); box-shadow:inset 0 -2px 0 var(--amber)}
+.seg button .g{font-weight:700; font-size:17px}
+.slider{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:6px 12px; flex:1 1 260px; max-width:420px}
+.slider label{font-size:14px; color:var(--muted); white-space:nowrap}
+.slider input{flex:1; min-width:80px; accent-color:var(--amber)}
+.slider .ends{font-size:12px; color:var(--dim); white-space:nowrap}
+.slider output{font-family:var(--mono); font-size:13px; color:var(--text); min-width:52px; text-align:right}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.lamrow{margin-top:8px}
+.slider.lam{flex:1 1 320px; max-width:460px}
+.slider.lam input{accent-color:var(--lamc, var(--amber))}
+.lam-sw{flex:none; width:14px; height:14px; border-radius:50%; background:var(--lamc, var(--amber)); box-shadow:0 0 10px var(--lamc, var(--amber))}
+.slider.lam output{min-width:118px}
+.chip{background:transparent; border:1px dashed var(--line); border-radius:999px; padding:5px 11px; font-size:13px; color:var(--muted); cursor:pointer}
+.chip:hover{color:var(--text); border-color:var(--dim)}
+
+.takeaways{list-style:none; padding:0; margin:16px 0 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px}
+.takeaways li{border-top:2px solid var(--line); padding-top:10px; color:var(--muted); font-size:16px}
+.takeaways li b{color:var(--text); display:block; font-family:var(--display); font-weight:700; font-size:18px; margin-bottom:2px}
+
+/* ch1 side */
+.legend{display:grid; gap:8px}
+.lg-row{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:14px}
+.lg-row .item{display:inline-flex; align-items:center; gap:4px}
+.glyph{display:inline-grid; place-items:center; width:28px; height:28px; border-radius:8px; font-weight:700; font-size:19px; border:1px solid currentColor}
+.amber{color:var(--amber)} .teal{color:var(--teal)} .rose{color:var(--rose)} .good{color:var(--good)}
+.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.stat-v{font-family:var(--display); font-weight:700; font-size:30px; line-height:1; font-variant-numeric:tabular-nums}
+.stat-l{font-size:13px; color:var(--muted)}
+.gauge{position:relative; height:12px; border-radius:6px; background:var(--bg2); border:1px solid var(--line); overflow:visible; margin-top:6px}
+.gauge-fill{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:6px; background:var(--good); transition:width .3s, background .3s}
+.gauge-mark{position:absolute; top:-5px; bottom:-5px; width:2px; background:var(--rose)}
+.gauge-scale{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:4px}
+.big{font-family:var(--display); font-weight:800; font-size:40px; line-height:1.1; font-variant-numeric:tabular-nums}
+.verdict{margin:4px 0 0; font-size:15px; color:var(--muted)}
+.verdict.alarm{color:var(--rose)} .verdict.ok{color:var(--good)}
+
+.ledger-wrap{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px}
+.ledger-labels{display:grid; grid-template-rows:30px 30px 24px; gap:4px; font-size:13px; color:var(--muted); align-items:center}
+.ledger{display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin; min-height:96px}
+.card{flex:none; display:grid; grid-template-rows:30px 30px 24px; gap:4px; width:44px; border-radius:8px; background:var(--bg2); border:1px solid var(--line); justify-items:center; align-items:center; font-family:var(--mono); font-size:14px}
+.card.new{animation:pop .35s ease-out}
+.card .r{display:flex; align-items:center; gap:2px}
+.card.drop{opacity:.42}
+.card.keep{border-color:rgba(123,224,160,.5)}
+.card.err{border-color:var(--rose); background:rgba(255,107,129,.12)}
+.card .s{font-size:13px}
+.card .bg{font-weight:700; font-size:16px}
+@keyframes pop{from{transform:translateY(6px); opacity:0}}
+.keyrow{display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.keylabel{font-size:13px; color:var(--muted)}
+.key{display:flex; flex-wrap:wrap; gap:3px; font-family:var(--mono); font-size:15px; flex:1; min-height:26px}
+.key span{display:inline-grid; place-items:center; width:22px; height:26px; border-radius:5px; background:rgba(123,224,160,.14); color:var(--good)}
+.key span.e{background:rgba(255,107,129,.2); color:var(--rose); text-decoration:line-through}
+.hint{font-size:14px; color:var(--dim); margin:8px 0 0}
+
+/* readouts */
+.reads{display:grid; grid-template-columns:1fr 1fr; gap:12px 10px}
+.read .v{font-family:var(--display); font-weight:700; font-size:24px; line-height:1.1; font-variant-numeric:tabular-nums}
+.read .l{font-size:13px; color:var(--muted)}
+.read.wide{grid-column:1/-1}
+.cmp{display:grid; gap:10px}
+.cmp .row .l{font-size:13px; color:var(--muted); display:flex; justify-content:space-between; gap:8px}
+.bar{height:10px; border-radius:5px; background:var(--bg2); border:1px solid var(--line); overflow:hidden; margin-top:4px}
+.bar i{display:block; height:100%; width:0; border-radius:5px; transition:width .25s}
+.cmp .txt{font-family:var(--mono); font-size:13px; margin-top:3px}
+.note{font-size:12.5px; color:var(--dim); margin:0}
+.reads4{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:14px}
+.reads4 .read{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px}
+.pill{display:inline-block; padding:3px 10px; border-radius:999px; font-size:14px; font-weight:700; margin-top:4px}
+
+.pager{display:flex; justify-content:space-between; gap:12px; margin-top:26px}
+.pager .btn{max-width:48%}
+footer{margin-top:30px; padding-top:14px; border-top:1px solid var(--line); color:var(--dim); font-size:13px; display:flex; flex-wrap:wrap; gap:6px 18px}
+kbd{font-family:var(--mono); font-size:12px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:0 5px; color:var(--muted)}
+@media (max-width:560px){
+  .chap-num{font-size:40px}
+  .brand-name{font-size:18px}
+  .tab{font-size:13px; padding:4px 10px 4px 4px}
+  .tab .n{width:20px;height:20px}
+  .tab .t{display:none}
+  .tab[aria-selected="true"] .t{display:inline}
+}
+@media (max-width:600px){ .stage canvas.tall{height:min(860px,185vw)} .stage canvas.mid{height:min(560px,125vw)} }
+@media (max-width:600px){ .slider .ends{display:none} .slider{min-width:0; max-width:100%} .seg{flex-wrap:wrap; max-width:100%} .controls > *{max-width:100%} }
+@media (prefers-reduced-motion: reduce){ .card{animation:none} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="none" stroke="#27315C" stroke-width="2"/><path d="M4 17 C 8 11, 11 21, 15 15 S 22 11, 26 15" fill="none" stroke="#F5B841" stroke-width="2.2" stroke-linecap="round"/><circle cx="15" cy="15" r="2.6" fill="#4FD1C5"/></svg>
+      <span class="brand-name">Quantum Light, Wobbly Air</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Chapters">
+      <button class="tab" role="tab" data-go="0"><span class="n">1</span><span class="t">Secret keys</span></button>
+      <button class="tab" role="tab" data-go="1"><span class="n">2</span><span class="t">From orbit</span></button>
+      <button class="tab" role="tab" data-go="2"><span class="n">3</span><span class="t">Wobbly air</span></button>
+      <button class="tab" role="tab" data-go="3"><span class="n">4</span><span class="t">Fried's r₀</span></button>
+    </nav>
+    <button class="fs" id="fsbtn" title="Full screen (F)"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Full screen</button>
+  </header>
+
+  <!-- ============ 1. QKD ============ -->
+  <section class="chapter" id="qkd" hidden>
+    <div class="chap-head"><div class="chap-num">1</div><h2>Sharing a secret key, one photon at a time</h2></div>
+    <div class="layout">
+      <div class="stage"><canvas id="cv-qkd" role="img" aria-label="Animation of Alice sending polarized photons to Bob"></canvas></div>
+      <aside class="side">
+        <div>
+          <h3>How a bit is written</h3>
+          <div class="legend">
+            <div class="lg-row"><span class="glyph amber">+</span><span class="item"><i data-pol="0" data-c="amber"></i>0</span><span class="item"><i data-pol="90" data-c="amber"></i>1</span></div>
+            <div class="lg-row"><span class="glyph teal">×</span><span class="item"><i data-pol="45" data-c="teal"></i>0</span><span class="item"><i data-pol="135" data-c="teal"></i>1</span></div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div><div class="stat-v" id="q-sent">0</div><div class="stat-l">photons sent</div></div>
+          <div><div class="stat-v" id="q-kept">0</div><div class="stat-l">bits kept</div></div>
+        </div>
+        <div>
+          <h3>Errors in the kept bits</h3>
+          <div class="big" id="q-qber">–</div>
+          <div class="gauge"><div class="gauge-fill" id="q-gfill"></div><div class="gauge-mark" style="left:22%"></div></div>
+          <div class="gauge-scale"><span>0%</span><span class="rose">alarm 11%</span><span>50%</span></div>
+          <p class="verdict" id="q-verdict">Send some photons to start.</p>
+        </div>
+      </aside>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="q-send">Send a photon</button>
+      <button class="btn" id="q-auto" aria-pressed="true"><span class="dot"></span>Auto-send</button>
+      <button class="btn" id="q-burst">Send 100 fast</button>
+      <button class="btn eve" id="q-eve" aria-pressed="false"><span class="dot"></span>Let Eve listen in</button>
+      <div class="seg" id="q-aseg" role="group" aria-label="Alice's filter"><span class="seg-l">Alice's filter</span><button data-v="random" aria-pressed="true">Random</button><button data-v="+" aria-pressed="false"><span class="g amber">+</span></button><button data-v="x" aria-pressed="false"><span class="g teal">×</span></button></div>
+      <div class="seg" id="q-bseg" role="group" aria-label="Bob's filter"><span class="seg-l">Bob's filter</span><button data-v="random" aria-pressed="true">Random</button><button data-v="+" aria-pressed="false"><span class="g amber">+</span></button><button data-v="x" aria-pressed="false"><span class="g teal">×</span></button></div>
+      <button class="btn ghost" id="q-reset">Clear</button>
+    </div>
+    <div class="ledger-wrap">
+      <div class="ledger-labels"><span>Alice sent</span><span>Bob measured</span><span>Keep?</span></div>
+      <div class="ledger" id="q-ledger" aria-live="polite"></div>
+    </div>
+    <div class="keyrow"><span class="keylabel">Shared secret key</span><div class="key" id="q-key"></div></div>
+    <div class="explain">
+      <p class="lead">Alice sends single photons, each polarized in one of four directions. Bob picks a filter at random to measure each one. Where their filters match, they now share a bit. A spy has to guess filters too, and wrong guesses leave errors behind.</p>
+      <p class="hint">Try it: set both filters to <b class="amber">+</b> and every bit matches. Set them different and Bob gets coin flips. Then turn on Eve and send 100.</p>
+      <ul class="takeaways">
+        <li><b>Same filter, same bit</b>Bob reads Alice's bit perfectly when he happens to use her filter. That happens about half the time.</li>
+        <li><b>Filters are compared in public</b>Afterwards they announce which filter they used (never the bit) and keep only the matches.</li>
+        <li><b>Spying leaves fingerprints</b>A single photon can't be copied. Eve must measure and resend, and her wrong guesses push errors to about 25%.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 2. SATELLITE ============ -->
+  <section class="chapter" id="orbit" hidden>
+    <div class="chap-head"><div class="chap-num">2</div><h2>Why send photons through space?</h2></div>
+    <div class="layout">
+      <div class="stage"><span class="tag">Not to scale · drag the satellite</span><canvas class="mid" id="cv-orbit" role="img" aria-label="A satellite passing over a ground station, beaming photons down"></canvas></div>
+      <aside class="side">
+        <div class="reads">
+          <div class="read"><div class="v" id="o-el">–</div><div class="l">height in the sky</div></div>
+          <div class="read"><div class="v" id="o-dist">–</div><div class="l">distance to satellite</div></div>
+          <div class="read"><div class="v" id="o-air">–</div><div class="l">thick air crossed</div></div>
+          <div class="read"><div class="v" id="o-r0">–</div><div class="l">r₀ along this path</div></div>
+          <div class="read"><div class="v" id="o-loss">–</div><div class="l">light lost to turbulence</div></div>
+          <div class="read"><div class="v" id="o-key">0</div><div class="l">secret key this pass</div></div>
+        </div>
+        <div class="cmp">
+          <h3 style="margin:0">Photons that arrive</h3>
+          <div class="row"><div class="l"><span>Via satellite</span></div><div class="bar"><i id="o-bsat" style="background:var(--amber)"></i></div><div class="txt amber" id="o-tsat">–</div></div>
+          <div class="row"><div class="l"><span>Via fibre, same distance</span></div><div class="bar"><i id="o-bfib" style="background:var(--violet)"></i></div><div class="txt" style="color:var(--violet)" id="o-tfib">–</div></div>
+          <p class="note">Rough numbers: 500 km orbit, 30 cm telescopes, 785 nm light, 100 million photons sent per second. Bars use a log scale.</p>
+        </div>
+      </aside>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="o-play">Pause pass</button>
+      <div class="slider"><label for="o-pos">Pass</label><span class="ends">rise</span><input type="range" id="o-pos" min="0" max="1000" value="200"><span class="ends">set</span></div>
+      <div class="slider"><label for="o-tu">Turbulence</label><span class="ends">calm</span><input type="range" id="o-tu" min="0" max="100" value="45"><span class="ends">strong</span><output id="o-tuo">–</output></div>
+      <div class="seg" id="o-dir" role="group" aria-label="Link direction"><span class="seg-l">Beam</span><button data-v="down" aria-pressed="true">Space → ground</button><button data-v="up" aria-pressed="false">Ground → space</button></div>
+      <button class="btn" id="o-cloud" aria-pressed="false"><span class="dot"></span>Clouds</button>
+    </div>
+    <div class="explain">
+      <p class="lead">Glass fibre swallows a little light every kilometre, so over long distances almost nothing gets through. From a satellite, photons fly through empty space and only meet thick air in the last few kilometres. That air is turbulent, and how much it hurts depends on its r₀ and on which way the beam goes.</p>
+      <ul class="takeaways">
+        <li><b>Space is kind to photons</b>Vacuum absorbs nothing. Most of the loss is the beam spreading out wider than the 30 cm telescope that catches it.</li>
+        <li><b>Low in the sky is harder</b>Near the horizon the satellite is farther away, the light crosses much more air, and r₀ shrinks.</li>
+        <li><b>Direction matters</b>Beaming down, turbulence blurs the image at the telescope. Beaming up, it bends the beam right at the start, so it spreads and wanders by the time it reaches orbit.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 3. TURBULENCE ============ -->
+  <section class="chapter" id="turbulence" hidden>
+    <div class="chap-head"><div class="chap-num">3</div><h2>Air wrinkles the light</h2></div>
+    <div class="layout full">
+      <div class="stage"><canvas class="tall" id="cv-turb" role="img" aria-label="Flat wavefronts passing through turbulent air and becoming wrinkled before a telescope"></canvas></div>
+    </div>
+    <div class="controls">
+      <div class="slider"><label for="t-str">Turbulence</label><span class="ends">calm</span><input type="range" id="t-str" min="0" max="100" value="45"><span class="ends">strong</span><output id="t-r0o">–</output></div>
+      <div class="slider"><label for="t-wind">Wind</label><span class="ends">still</span><input type="range" id="t-wind" min="0" max="100" value="35"><span class="ends">gusty</span></div>
+      <div class="seg" id="t-ruler" role="group" aria-label="Ruler size"><span class="seg-l">Flatness ruler</span><button data-v="1" aria-pressed="true">r₀ wide</button><button data-v="3" aria-pressed="false">3 × r₀</button><button data-v="0" aria-pressed="false">Off</button></div>
+      <button class="btn" id="t-rays" aria-pressed="true"><span class="dot"></span>Light rays</button>
+      <button class="btn" id="t-play">Pause</button>
+    </div>
+    <div class="controls lamrow">
+      <div class="slider lam"><label for="t-lam">Wavelength</label><span class="lam-sw" aria-hidden="true"></span><input class="lam-in" type="range" id="t-lam" min="450" max="1600" step="5" value="500"><output class="lam-out">500 nm</output></div>
+      <div class="chips"><button class="chip" data-lam="500">Visible · 500 nm</button><button class="chip" data-lam="785">785 nm</button><button class="chip" data-lam="850">850 nm</button><button class="chip" data-lam="1064">1064 nm</button><button class="chip" data-lam="1550">Telecom · 1550 nm</button></div>
+    </div>
+    <div class="explain">
+      <p class="lead">Warm and cool pockets of air bend light by slightly different amounts. A flat wavefront goes in, a wrinkled one comes out, and the telescope can no longer focus it to one sharp point. The wrinkles are drawn to scale: the gap between lines is one wavelength. Change the wavelength and the air's bumps stay the same size, but they become a smaller fraction of each wave.</p>
+      <ul class="takeaways">
+        <li><b>Flat, but only up close</b>Lay a ruler r₀ wide on the wrinkled wavefront and it hugs a straight line. Make the ruler 3 × r₀ and it clearly doesn't. That is what r₀ means.</li>
+        <li><b>Wrinkles tilt the light</b>Each r₀-sized piece of the wavefront points a slightly different way, so the rays no longer meet at one spot.</li>
+        <li><b>Wind makes it dance</b>The air drifts past, so the blur jumps around many times a second. That's why stars twinkle.</li>
+        <li><b>Longer waves shrug it off</b>Air delays every wavelength by almost the same distance. For a longer wave that delay is a smaller slice of the wave, so r₀ grows: three times the wavelength gives almost four times the r₀.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 4. FRIED ============ -->
+  <section class="chapter" id="fried" hidden>
+    <div class="chap-head"><div class="chap-num">4</div><h2>Fried's r₀: how big is a calm patch of air?</h2></div>
+    <div class="layout full">
+      <div class="stage"><canvas class="tall" id="cv-fried" role="img" aria-label="Left: wavefront across the telescope mirror with r0-sized patches. Right: the resulting image of a point of light."></canvas></div>
+    </div>
+    <div class="controls">
+      <div class="slider"><label for="f-r0">r₀ at 500 nm</label><span class="ends">stormy</span><input type="range" id="f-r0" min="3" max="30" step="0.5" value="8"><span class="ends">calm</span><output id="f-r0o">8 cm</output></div>
+      <div class="slider"><label for="f-D">Telescope</label><span class="ends">small</span><input type="range" id="f-D" min="8" max="100" step="1" value="30"><span class="ends">big</span><output id="f-Do">30 cm</output></div>
+      <div class="seg" id="f-exp" role="group" aria-label="Exposure"><span class="seg-l">Camera</span><button data-v="short" aria-pressed="true">Snapshot</button><button data-v="long" aria-pressed="false">Long exposure</button></div>
+      <button class="btn" id="f-tt" aria-pressed="false"><span class="dot"></span>Remove tip-tilt</button>
+      <button class="btn" id="f-patch" aria-pressed="true"><span class="dot"></span>Show r₀ patches</button>
+      <button class="btn" id="f-play">Pause</button>
+    </div>
+    <div class="controls lamrow">
+      <div class="slider lam"><label for="f-lam">Wavelength</label><span class="lam-sw" aria-hidden="true"></span><input class="lam-in" type="range" id="f-lam" min="450" max="1600" step="5" value="500"><output class="lam-out">500 nm</output></div>
+      <div class="chips"><button class="chip" data-lam="500">Visible · 500 nm</button><button class="chip" data-lam="785">785 nm</button><button class="chip" data-lam="850">850 nm</button><button class="chip" data-lam="1064">1064 nm</button><button class="chip" data-lam="1550">Telecom · 1550 nm</button></div>
+    </div>
+    <div class="controls" style="margin-top:8px">
+      <span class="stat-l">Typical air (r₀ at 500 nm):</span>
+      <div class="chips">
+        <button class="chip" data-r0="3">Hot afternoon · 3 cm</button>
+        <button class="chip" data-r0="7">Ordinary night · 7 cm</button>
+        <button class="chip" data-r0="12">Good site · 12 cm</button>
+        <button class="chip" data-r0="22">Excellent mountaintop · 22 cm</button>
+      </div>
+    </div>
+    <div class="reads4">
+      <div class="read"><div class="v" id="f-ratio">–</div><div class="l">r₀ patches across the telescope</div></div>
+      <div class="read"><div class="v" id="f-strehl">–</div><div class="l">peak brightness vs. perfect air</div></div>
+      <div class="read"><div class="l">What the camera sees</div><div class="pill" id="f-verdict">–</div></div>
+      <div class="read"><div class="v" id="f-lam">–</div><div class="l">r₀ at the chosen wavelength</div></div>
+    </div>
+    <div class="explain">
+      <p class="lead">r₀ (the Fried parameter) is the width of a patch where the wrinkled wavefront still looks flat. Big r₀ means calm air. Small r₀ means strong turbulence. A telescope wider than r₀ sees many patches at once, and its image breaks up.</p>
+      <ul class="takeaways">
+        <li><b>Smaller than r₀: sharp but jumpy</b>A small telescope sees about one flat patch. The spot stays sharp, it just wanders as the patch tilts.</li>
+        <li><b>Bigger than r₀: speckles</b>A big telescope sees many patches, each sending light a slightly different way. The spot splits into speckles.</li>
+        <li><b>Removing tip-tilt helps, up to a point</b>A fast steering mirror cancels the overall tilt and steadies the spot. Once the mirror spans many r₀, the speckles remain; fixing those needs adaptive optics.</li>
+        <li><b>Longer wavelength: bigger r₀, bigger ideal spot</b>At 1550 nm r₀ is almost four times larger than at 500 nm, but the perfect-air spot also grows three times wider. The blur from the air shrinks only a little.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="pager">
+    <button class="btn" id="prev">← Previous</button>
+    <button class="btn" id="next">Next →</button>
+  </div>
+  <footer>
+    <span>Move between chapters with <kbd>←</kbd> <kbd>→</kbd> or a presentation clicker</span>
+    <span><kbd>Space</kbd> pause / play</span>
+    <span><kbd>F</kbd> full screen</span>
+    <span>Turbulence images are live simulations of Kolmogorov turbulence.</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C = { bg:'#0A0F24', bg2:'#0E1530', panel:'#131B3A', line:'#27315C', text:'#E9ECF8', muted:'#A8AFD4', dim:'#6F78A6',
+  amber:'#F5B841', teal:'#4FD1C5', rose:'#FF6B81', beam:'#FF7A59', good:'#7BE0A0', violet:'#8C9BFF' };
+const MONO = "'JetBrains Mono', ui-monospace, Menlo, monospace";
+const BODY = "'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif";
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const lerp = (a,b,t) => a + (b-a)*t;
+function rgba(hex, a){ const n = parseInt(hex.slice(1),16); return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`; }
+function randn(){ let u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+function makeStage(canvas){
+  const st = { canvas, ctx: canvas.getContext('2d'), w:1, h:1, dpr:1 };
+  const fit = () => { const r = canvas.getBoundingClientRect(); st.dpr = Math.min(2, window.devicePixelRatio||1);
+    st.w = Math.max(1, r.width); st.h = Math.max(1, r.height);
+    canvas.width = Math.round(st.w*st.dpr); canvas.height = Math.round(st.h*st.dpr); };
+  new ResizeObserver(fit).observe(canvas); fit();
+  st.begin = () => { st.ctx.setTransform(st.dpr,0,0,st.dpr,0,0); st.ctx.clearRect(0,0,st.w,st.h); };
+  return st;
+}
+function text(ctx, s, x, y, o={}){
+  ctx.save(); ctx.font = `${o.weight||400} ${o.size||13}px ${o.font||BODY}`; ctx.fillStyle = o.color||C.muted;
+  ctx.textAlign = o.align||'left'; ctx.textBaseline = o.base||'middle';
+  if (o.spacing && 'letterSpacing' in ctx) ctx.letterSpacing = o.spacing;
+  ctx.fillText(s, x, y); ctx.restore();
+}
+function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); }
+function drawPol(ctx,x,y,len,ang,color,lw){
+  const t=-ang*Math.PI/180, ux=Math.cos(t), uy=Math.sin(t), nx=-uy, ny=ux, hx=len*ux, hy=len*uy, hs=len*0.34;
+  ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=lw; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x-hx*0.75,y-hy*0.75); ctx.lineTo(x+hx*0.75,y+hy*0.75); ctx.stroke();
+  for (const s of [1,-1]) { const px=x+s*hx, py=y+s*hy; ctx.beginPath(); ctx.moveTo(px,py);
+    ctx.lineTo(px-s*ux*hs+nx*hs*0.62, py-s*uy*hs+ny*hs*0.62); ctx.lineTo(px-s*ux*hs-nx*hs*0.62, py-s*uy*hs-ny*hs*0.62); ctx.closePath(); ctx.fill(); }
+  ctx.restore();
+}
+function polSVG(ang, color, size=24){
+  const c=size/2, L=size*0.36, t=-ang*Math.PI/180, ux=Math.cos(t), uy=Math.sin(t), nx=-uy, ny=ux, hs=L*0.42;
+  let heads=''; for (const s of [1,-1]) { const px=c+s*L*ux, py=c+s*L*uy;
+    heads += `<polygon points="${px.toFixed(1)},${py.toFixed(1)} ${(px-s*ux*hs+nx*hs*0.65).toFixed(1)},${(py-s*uy*hs+ny*hs*0.65).toFixed(1)} ${(px-s*ux*hs-nx*hs*0.65).toFixed(1)},${(py-s*uy*hs-ny*hs*0.65).toFixed(1)}" fill="${color}"/>`; }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${c}" cy="${c}" r="${c-1.5}" fill="none" stroke="${color}" stroke-opacity=".35"/><line x1="${(c-L*ux*0.7).toFixed(1)}" y1="${(c-L*uy*0.7).toFixed(1)}" x2="${(c+L*ux*0.7).toFixed(1)}" y2="${(c+L*uy*0.7).toFixed(1)}" stroke="${color}" stroke-width="2" stroke-linecap="round"/>${heads}</svg>`;
+}
+function bindSeg(el, cb){ el.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x===b ? 'true':'false')); cb(b.dataset.v); })); }
+function bindToggle(el, init, cb){ let on = init; el.setAttribute('aria-pressed', on); el.addEventListener('click', () => { on=!on; el.setAttribute('aria-pressed', on); cb(on); }); return { set(v){ on=v; el.setAttribute('aria-pressed', v); } }; }
+function makeLUT(stops){ const lut = new Uint8ClampedArray(256*3);
+  const cs = stops.map(([p,h]) => [p, parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]);
+  for (let i=0;i<256;i++){ const t=i/255; let k=0; while (k<cs.length-2 && t>cs[k+1][0]) k++;
+    const a=cs[k], b=cs[k+1], f=clamp((t-a[0])/(b[0]-a[0]),0,1);
+    lut[i*3]=lerp(a[1],b[1],f); lut[i*3+1]=lerp(a[2],b[2],f); lut[i*3+2]=lerp(a[3],b[3],f); }
+  return lut; }
+const LUT_HOT = makeLUT([[0,'#04061A'],[0.22,'#231A57'],[0.5,'#A83469'],[0.76,'#F4A146'],[1,'#FFF7DE']]);
+const LUT_DIV = makeLUT([[0,'#6F80FF'],[0.5,'#1A2250'],[1,'#F5B841']]);
+document.querySelectorAll('i[data-pol]').forEach(i => { i.outerHTML = polSVG(+i.dataset.pol, C[i.dataset.c], 26); });
+
+/* ================= Turbulence engine: Kolmogorov phase screen + FFT PSF ================= */
+const Engine = (() => {
+  const N = 256, S = 512;
+  function makeFFT(n){
+    const lev = Math.round(Math.log2(n)), rev = new Uint32Array(n);
+    for (let i=0;i<n;i++){ let r=0; for (let b=0;b<lev;b++) r |= ((i>>b)&1) << (lev-1-b); rev[i]=r; }
+    const cs = new Float64Array(n/2), sn = new Float64Array(n/2);
+    for (let i=0;i<n/2;i++){ cs[i]=Math.cos(2*Math.PI*i/n); sn[i]=Math.sin(2*Math.PI*i/n); }
+    return (re, im, sign) => {
+      for (let i=0;i<n;i++){ const j=rev[i]; if (j>i){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
+      for (let size=2; size<=n; size<<=1){ const half=size>>1, step=n/size;
+        for (let i=0;i<n;i+=size){ for (let j=0,k=0;j<half;j++,k+=step){
+          const wr=cs[k], wi=sign*sn[k], a=i+j, b=a+half;
+          const tr=re[b]*wr-im[b]*wi, ti=re[b]*wi+im[b]*wr;
+          re[b]=re[a]-tr; im[b]=im[a]-ti; re[a]+=tr; im[a]+=ti; } } }
+    };
+  }
+  function fft2(re, im, n, fft, sign, y0=0, y1=n-1){
+    const tr = new Float64Array(n), ti = new Float64Array(n);
+    for (let y=Math.max(0,y0); y<=Math.min(n-1,y1); y++){ const o=y*n;
+      for (let x=0;x<n;x++){ tr[x]=re[o+x]; ti[x]=im[o+x]; } fft(tr,ti,sign);
+      for (let x=0;x<n;x++){ re[o+x]=tr[x]; im[o+x]=ti[x]; } }
+    for (let x=0;x<n;x++){
+      for (let y=0;y<n;y++){ tr[y]=re[y*n+x]; ti[y]=im[y*n+x]; } fft(tr,ti,sign);
+      for (let y=0;y<n;y++){ re[y*n+x]=tr[y]; im[y*n+x]=ti[y]; } }
+  }
+  let screen = null, winStd = 1;
+  function ensure(){
+    if (screen) return;
+    const re = new Float64Array(S*S), im = new Float64Array(S*S);
+    const k0 = Math.sqrt(0.023) / S;           // r0 = 1 pixel reference
+    for (let ky=0; ky<S; ky++){ const fy=(ky<S/2?ky:ky-S)/S;
+      for (let kx=0; kx<S; kx++){ const fx=(kx<S/2?kx:kx-S)/S; const f=Math.hypot(fx,fy); if (f===0) continue;
+        const a = k0*Math.pow(f,-11/6); re[ky*S+kx]=randn()*a; im[ky*S+kx]=randn()*a; } }
+    fft2(re, im, S, makeFFT(S), +1);
+    screen = new Float32Array(S*S); for (let i=0;i<S*S;i++) screen[i]=re[i];
+    // typical piston-removed spread across a 100-px line (for side-view scaling)
+    let acc=0; for (let t=0;t<24;t++){ const y=(t*37)%S, x0=(t*91)%S; let m=0; for (let i=0;i<100;i++) m+=screen[y*S+(x0+i)%S]; m/=100;
+      let v=0; for (let i=0;i<100;i++){ const d=screen[y*S+(x0+i)%S]-m; v+=d*d; } acc+=Math.sqrt(v/100); }
+    winStd = acc/24;
+  }
+  function samp(x,y){
+    x = ((x % S) + S) % S; y = ((y % S) + S) % S;
+    const x0=x|0, y0=y|0, fx=x-x0, fy=y-y0, x1=(x0+1)%S, y1=(y0+1)%S;
+    return (screen[y0*S+x0]*(1-fx)+screen[y0*S+x1]*fx)*(1-fy) + (screen[y1*S+x0]*(1-fx)+screen[y1*S+x1]*fx)*fy;
+  }
+  const fftN = makeFFT(N), pr = new Float64Array(N*N), pim = new Float64Array(N*N), phb = new Float64Array(N*N), idb = new Int32Array(N*N);
+  // D in pixels (1 px = 1 cm); scale = phase multiplier (r0^-5/6); rt = remove tip-tilt. Returns peak and Strehl-like ratio
+  function psf(D, scale, ox, oy, out, rt){
+    pr.fill(0); pim.fill(0);
+    const c=N/2, R=D/2, y0=Math.floor(c-R)-1, y1=Math.ceil(c+R)+1; let np=0, sxp=0, syp=0, sxx=0, syy=0, sm=0;
+    for (let y=y0;y<=y1;y++) for (let x=y0;x<=y1;x++){
+      const dx=x+0.5-c, dy=y+0.5-c; if (dx*dx+dy*dy > R*R) continue;
+      const ph = scale ? scale*samp(ox+dx, oy+dy) : 0; idb[np]=y*N+x; phb[np]=ph; np++; sm+=ph; }
+    const mean = np ? sm/np : 0;
+    if (rt) for (let k=0;k<np;k++){ const i=idb[k], dx=(i%N)+0.5-c, dy=((i/N)|0)+0.5-c, v=phb[k]-mean; sxp+=dx*v; syp+=dy*v; sxx+=dx*dx; syy+=dy*dy; }
+    const gx = rt&&sxx ? sxp/sxx : 0, gy = rt&&syy ? syp/syy : 0;
+    for (let k=0;k<np;k++){ const i=idb[k], x=i%N, y=(i/N)|0, ph=phb[k]-gx*(x+0.5-c)-gy*(y+0.5-c), sg=((x+y)&1)?-1:1;
+      pr[i]=sg*Math.cos(ph); pim[i]=sg*Math.sin(ph); }
+    fft2(pr, pim, N, fftN, -1, y0, y1);
+    let peak=0; for (let i=0;i<N*N;i++){ const v=pr[i]*pr[i]+pim[i]*pim[i]; out[i]=v; if (v>peak) peak=v; }
+    return { peak, strehl: np ? peak/(np*np) : 0 };
+  }
+  const offs = new Map();
+  function paint(ctx, data, crop, x, y, size, norm){
+    let o = offs.get(crop); if (!o){ const cv=document.createElement('canvas'); cv.width=cv.height=crop; o={cv, cx:cv.getContext('2d'), img:null}; o.img=o.cx.createImageData(crop,crop); offs.set(crop,o); }
+    const d=o.img.data, s=(N-crop)/2, inv = norm>0 ? 1/norm : 0;
+    for (let j=0;j<crop;j++) for (let i=0;i<crop;i++){
+      const v = Math.sqrt(clamp(data[(s+j)*N+(s+i)]*inv,0,1)); const li=(v*255)|0, p=(j*crop+i)*4;
+      d[p]=LUT_HOT[li*3]; d[p+1]=LUT_HOT[li*3+1]; d[p+2]=LUT_HOT[li*3+2]; d[p+3]=255; }
+    o.cx.putImageData(o.img,0,0);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality='high'; ctx.drawImage(o.cv, x, y, size, size); ctx.restore();
+  }
+  return { N, S, ensure, samp, psf, paint, get winStd(){ return winStd; } };
+})();
+
+/* ================= Shared wavelength ================= */
+function lamColour(nm){
+  if (nm > 700) return nm > 1000 ? '#8A5A7A' : '#B0415A';
+  const stops=[[450,[70,90,255]],[490,[0,190,255]],[530,[60,230,90]],[575,[245,225,40]],[610,[255,140,20]],[650,[255,40,30]],[700,[180,20,30]]];
+  let i=0; while (i<stops.length-2 && nm>stops[i+1][0]) i++;
+  const a=stops[i], b=stops[i+1], f=clamp((nm-a[0])/(b[0]-a[0]),0,1);
+  return '#'+a[1].map((v,k)=>Math.round(lerp(v,b[1][k],f)).toString(16).padStart(2,'0')).join('');
+}
+function lamName(nm){ return nm<495?'blue':nm<570?'green':nm<590?'yellow':nm<620?'orange':nm<=700?'red':nm<1260?'near-infrared':'telecom infrared'; }
+const LAMBDA = { v:500, subs:[],
+  set(v){ this.v=v; const c=lamColour(v);
+    document.querySelectorAll('.lam-in').forEach(i => { if (+i.value!==v) i.value=v; });
+    document.querySelectorAll('.lam-out').forEach(o => o.textContent = `${v} nm · ${lamName(v)}`);
+    document.querySelectorAll('.slider.lam').forEach(el => el.style.setProperty('--lamc', c));
+    this.subs.forEach(f => f(v)); } };
+document.querySelectorAll('.lam-in').forEach(i => i.addEventListener('input', () => LAMBDA.set(+i.value)));
+document.querySelectorAll('.chip[data-lam]').forEach(b => b.addEventListener('click', () => LAMBDA.set(+b.dataset.lam)));
+const evenCrop = c => clamp(Math.round(c/2)*2, 16, 256);
+
+/* ================= Chapter 1: BB84 ================= */
+const Q = (() => {
+  const st = makeStage($('#cv-qkd'));
+  const s = { aMode:'random', bMode:'random', eve:false, auto:!reduce, fly:[], wait:0.5, log:[], last:null, lastT:9, emit:0,
+    bursting:false, burstLeft:0, burstT:0, burstStart:0, summary:null, sumT:9 };
+  const pol = (b,bit) => b==='+' ? (bit?90:0) : (bit?135:45);
+  const rb = () => Math.random()<0.5 ? 0 : 1;
+  const rB = () => Math.random()<0.5 ? '+' : 'x';
+  const bcol = b => b==='+' ? C.amber : C.teal;
+  const bglyph = b => b==='+' ? '+' : '×';
+  function make(v){
+    const aB = s.aMode==='random' ? rB() : s.aMode, aBit = rb();
+    let inB=aB, inBit=aBit, eB=null, eBit=null;
+    if (s.eve){ eB=rB(); eBit = eB===aB ? aBit : rb(); inB=eB; inBit=eBit; }
+    const bB = s.bMode==='random' ? rB() : s.bMode, bBit = bB===inB ? inBit : rb();
+    const kept = aB===bB;
+    return { aB, aBit, eB, eBit, bB, bBit, kept, err: kept && aBit!==bBit, eve: s.eve, t:0, v, lane: 0 };
+  }
+  const ledger=$('#q-ledger'), key=$('#q-key'), burstBtn=$('#q-burst');
+  function renderDOM(){
+    const L=s.log, kept=L.filter(p=>p.kept), errs=kept.filter(p=>p.err).length;
+    $('#q-sent').textContent=L.length; $('#q-kept').textContent=kept.length;
+    const qb = kept.length ? errs/kept.length : 0;
+    $('#q-qber').textContent = kept.length ? Math.round(qb*100)+'%' : '–';
+    const f=$('#q-gfill'); f.style.width = clamp(qb/0.5,0,1)*100+'%'; f.style.background = qb>0.11 ? C.rose : C.good;
+    const v=$('#q-verdict');
+    if (kept.length < 8){ v.className='verdict'; v.textContent = L.length ? 'Collecting bits… keep sending.' : 'Send some photons to start.'; }
+    else if (qb > 0.11){ v.className='verdict alarm'; v.textContent='Too many errors. Someone is listening, so they throw this key away.'; }
+    else { v.className='verdict ok'; v.textContent='Errors are low. The key is safe to use.'; }
+    const sl = L.slice(-40);
+    ledger.innerHTML = sl.map((p,idx) => {
+      const cls = !p.kept ? 'drop' : p.err ? 'err' : 'keep';
+      const mark = !p.kept ? '<span class="s" style="color:var(--dim)">–</span>' : p.err ? '<span class="s rose">✗</span>' : '<span class="s good">✓</span>';
+      return `<div class="card ${cls}${idx===sl.length-1?' new':''}"><div class="r">${polSVG(pol(p.aB,p.aBit), bcol(p.aB), 22)}<span>${p.aBit}</span></div><div class="r"><span class="bg" style="color:${bcol(p.bB)}">${bglyph(p.bB)}</span><span>${p.bBit}</span></div>${mark}</div>`; }).join('');
+    ledger.scrollLeft = ledger.scrollWidth;
+    key.innerHTML = kept.slice(-60).map(p => `<span class="${p.err?'e':''}">${p.bBit}</span>`).join('');
+  }
+  function send(){ if (!s.fly.length && !s.bursting){ s.fly.push(make(1/1.7)); s.emit = 0.35; } }
+  function startBurst(){ s.bursting=true; s.burstLeft=100; s.burstT=0; s.burstStart=s.log.length; s.summary=null; burstBtn.textContent='Stop'; }
+  function endBurst(){
+    s.bursting=false; s.burstLeft=0; burstBtn.textContent='Send 100 fast';
+    const L=s.log.slice(s.burstStart), k=L.filter(p=>p.kept), e=k.filter(p=>p.err).length;
+    if (L.length) { s.summary={ n:L.length, k:k.length, e }; s.sumT=0; }
+    s.wait = 1.2;
+  }
+  $('#q-send').addEventListener('click', send);
+  const autoT = bindToggle($('#q-auto'), s.auto, v => { s.auto=v; s.wait=0.2; });
+  burstBtn.addEventListener('click', () => { if (s.bursting) { s.burstLeft=0; } else { s.fly=[]; startBurst(); } });
+  bindToggle($('#q-eve'), false, v => { s.eve=v; });
+  bindSeg($('#q-aseg'), v => s.aMode=v); bindSeg($('#q-bseg'), v => s.bMode=v);
+  $('#q-reset').addEventListener('click', () => { s.log=[]; s.last=null; s.fly=[]; s.summary=null; if (s.bursting) endBurst(); s.summary=null; renderDOM(); });
+
+  function disk(ctx,x,y,r,stroke,basis,alpha=1){
+    ctx.save(); ctx.globalAlpha=alpha; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='rgba(19,27,58,0.95)'; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle=stroke; ctx.stroke();
+    if (basis){ ctx.globalAlpha=alpha*0.6; ctx.lineWidth=1.5; for (const a of (basis==='+'?[0,90]:[45,135])){ const t=-a*Math.PI/180;
+      ctx.beginPath(); ctx.moveTo(x-Math.cos(t)*r*0.82, y-Math.sin(t)*r*0.82); ctx.lineTo(x+Math.cos(t)*r*0.82, y+Math.sin(t)*r*0.82); ctx.stroke(); } }
+    ctx.restore();
+  }
+  function photonGlyph(ctx,x,y,r,ang,col,ring,glow=true){
+    if (glow){ const g=ctx.createRadialGradient(x,y,0,x,y,r*2.4); g.addColorStop(0,rgba(col,0.55)); g.addColorStop(1,rgba(col,0));
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r*2.4,0,Math.PI*2); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle='rgba(10,15,36,0.85)'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle= ring||col; ctx.stroke();
+    drawPol(ctx,x,y,r*0.78,ang,col,r>8?2.4:1.6);
+  }
+  function frame(dt){
+    if (s.bursting){
+      s.burstT -= dt;
+      while (s.burstLeft>0 && s.burstT<=0){ const p=make(1/0.75); p.lane = (Math.random()-0.5); s.fly.push(p); s.burstLeft--; s.burstT += 0.075; s.emit=0.18; }
+    }
+    let arrived=false;
+    for (const p of s.fly){ p.t += dt*p.v; if (p.t>=1){ s.log.push(p); s.last=p; s.lastT=0; arrived=true; } }
+    if (arrived){ s.fly = s.fly.filter(p => p.t<1); renderDOM(); if (!s.bursting) s.wait=0.9; }
+    if (s.bursting && s.burstLeft===0 && !s.fly.length) endBurst();
+    if (!s.bursting && !s.fly.length && s.auto){ s.wait-=dt; if (s.wait<=0) send(); }
+    s.lastT += dt; s.sumT += dt; s.emit = Math.max(0, s.emit-dt);
+    draw();
+  }
+  function draw(){
+    st.begin(); const {ctx,w,h}=st; if (w<80||h<80) return;
+    const R = clamp(Math.min(w*0.045, h*0.085), 15, 40);
+    const y0 = h*0.44, ax = Math.max(w*0.13, R*2.7), bx = Math.min(w*0.76, w - R*3.4), ex=(ax+bx)/2;
+    const newest = s.fly.length ? s.fly[s.fly.length-1] : null;
+    const aCur = newest || s.last;
+    const single = s.fly.length && !s.bursting ? s.fly[0] : null;
+    const bCur = single || s.last;
+    // beam path
+    ctx.save(); ctx.setLineDash([4,7]); ctx.strokeStyle='rgba(168,175,212,0.22)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(ax,y0); ctx.lineTo(bx,y0); ctx.stroke(); ctx.restore();
+    // Alice
+    const lx = ax - R*1.85;
+    ctx.strokeStyle='rgba(168,175,212,0.35)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(lx+R*0.4,y0); ctx.lineTo(ax-R,y0); ctx.stroke();
+    rrect(ctx, lx-R*0.6, y0-R*0.4, R*1.0, R*0.8, 5); ctx.fillStyle='#1E2856'; ctx.fill();
+    if (s.emit>0){ const g=ctx.createRadialGradient(lx+R*0.4,y0,0,lx+R*0.4,y0,R); g.addColorStop(0,rgba('#FFF2C8',Math.min(1,s.emit*2.5))); g.addColorStop(1,rgba('#FFF2C8',0)); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(lx+R*0.4,y0,R,0,7); ctx.fill(); }
+    text(ctx,'ALICE',ax,y0-R-18,{font:MONO,size:12,weight:600,color:C.text,align:'center',spacing:'2px'});
+    if (aCur){ disk(ctx,ax,y0,R,bcol(aCur.aB),null); drawPol(ctx,ax,y0,R*0.62,pol(aCur.aB,aCur.aBit),bcol(aCur.aB),2.4);
+      text(ctx,`filter ${bglyph(aCur.aB)}  ·  bit ${aCur.aBit}`,ax,y0+R+18,{font:MONO,size:13,color:bcol(aCur.aB),align:'center'}); }
+    else { disk(ctx,ax,y0,R,C.line,null); text(ctx,'ready',ax,y0+R+18,{font:MONO,size:13,color:C.dim,align:'center'}); }
+    // Eve
+    const eveOn = s.eve || s.fly.some(p => p.eve);
+    if (eveOn){
+      const er=R*0.82;
+      let passed=null; for (let i=s.fly.length-1;i>=0;i--){ if (s.fly[i].eve && s.fly[i].t>0.5){ passed=s.fly[i]; break; } }
+      disk(ctx,ex,y0,er,C.rose, passed?passed.eB:null);
+      if (!passed) text(ctx,'?',ex,y0+1,{size:er*0.9,weight:700,color:C.rose,align:'center'});
+      const hy=y0+er+R*0.9; ctx.fillStyle=rgba(C.rose,0.85); ctx.beginPath(); ctx.arc(ex,hy,R*0.32,0,7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(ex,hy+R*0.95,R*0.62,R*0.48,0,Math.PI,0); ctx.fill();
+      text(ctx,'EVE',ex,hy+R*1.25,{font:MONO,size:12,weight:600,color:C.rose,align:'center',spacing:'2px'});
+      if (s.bursting) text(ctx,'guesses a filter for every photon',ex,y0-er-16,{size:13,color:C.muted,align:'center'});
+      else if (passed) text(ctx, passed.eB===passed.aB ? 'lucky guess' : 'wrong guess!', ex, y0-er-16, {size:14,weight:700,color: passed.eB===passed.aB ? C.muted : C.rose, align:'center'});
+      else text(ctx,'guesses a filter',ex,y0-er-16,{size:13,color:C.muted,align:'center'});
+    }
+    // Bob
+    const bB = bCur ? bCur.bB : null, dX = bx + R*2.3, d0y = y0-R*1.25, d1y = y0+R*1.25, ds=R*0.9;
+    text(ctx,'BOB',bx,y0-R-18,{font:MONO,size:12,weight:600,color:C.text,align:'center',spacing:'2px'});
+    ctx.strokeStyle='rgba(168,175,212,0.25)'; ctx.lineWidth=1.5;
+    for (const dy of [d0y,d1y]){ ctx.beginPath(); ctx.moveTo(bx+R*0.8,y0+(dy-y0)*0.3); ctx.lineTo(dX-ds/2,dy); ctx.stroke(); }
+    disk(ctx,bx,y0,R, bB?bcol(bB):C.line, bB);
+    if (bB) text(ctx,`filter ${bglyph(bB)}`,bx,y0+R+18,{font:MONO,size:13,color:bcol(bB),align:'center'});
+    const fl = s.last ? clamp(1 - s.lastT/(s.bursting?0.3:2.2), 0, 1) : 0;
+    [[d0y,0],[d1y,1]].forEach(([dy,bit]) => {
+      const on = s.last && s.last.bBit===bit && fl>0; rrect(ctx,dX-ds/2,dy-ds/2,ds,ds,6);
+      ctx.fillStyle = on ? rgba(bcol(s.last.bB), 0.25+0.6*fl) : '#18214A'; ctx.fill();
+      ctx.lineWidth=1.5; ctx.strokeStyle = on ? bcol(s.last.bB) : C.line; ctx.stroke();
+      text(ctx,String(bit),dX,dy+1,{font:MONO,size:ds*0.5,weight:600,color:on?'#0A0F24':C.dim,align:'center'});
+    });
+    // photons in flight
+    for (const q of s.fly){ const t=q.t, x = lerp(ax+R, bx-R, t);
+      const y = y0 + (s.bursting ? q.lane*R*0.9*Math.sin(Math.PI*t) : 0);
+      const after = q.eve && t>0.5, ang = after ? pol(q.eB,q.eBit) : pol(q.aB,q.aBit), col = after ? bcol(q.eB) : bcol(q.aB);
+      if (!s.bursting){ const tg = ctx.createLinearGradient(x-R*4,0,x,0); tg.addColorStop(0,rgba(col,0)); tg.addColorStop(1,rgba(col,0.4));
+        ctx.strokeStyle=tg; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(Math.max(ax+R,x-R*4),y); ctx.lineTo(x,y); ctx.stroke(); }
+      photonGlyph(ctx,x,y, s.bursting ? R*0.3 : R*0.5, ang, col, after && q.eB!==q.aB ? C.rose : null, !s.bursting);
+    }
+    // narration
+    let msg='', mc=C.muted;
+    if (s.bursting){ const done = s.log.length - s.burstStart; msg = `Sending 100 photons fast… ${done} of 100 arrived`; mc=C.text; }
+    else if (s.summary && s.sumT<6 && !s.fly.length){ const S=s.summary, pct = S.k ? Math.round(100*S.e/S.k) : 0;
+      msg = `${S.n} photons → ${S.k} kept (filters matched) → ${S.e} wrong bits = ${pct}% errors`; mc = pct>11 ? C.rose : C.good; }
+    else if (s.last && !s.fly.length && s.lastT<3){ const L=s.last;
+      if (!L.kept){ msg='Filters differ → Bob\'s result is a coin flip. They throw this one away.'; mc=C.muted; }
+      else if (L.err){ msg='Filters match, but Bob\'s bit is wrong! That can only happen if someone meddled.'; mc=C.rose; }
+      else { msg='Filters match → Bob gets exactly Alice\'s bit. They keep it.'; mc=C.good; } }
+    else if (s.fly.length){ const q=s.fly[0]; const bad = q.eve && q.t>0.5 && q.eB!==q.aB;
+      msg = bad ? 'Eve measured with the wrong filter and sent on a new, wrong photon.' : 'A single photon on its way…'; mc = bad ? C.rose : C.muted; }
+    else msg = 'Press “Send a photon”, or turn on Auto-send.';
+    text(ctx,msg,w/2,h-26,{size:clamp(w/52,13,18),color:mc,align:'center',weight:700});
+  }
+  renderDOM();
+  return { frame, toggle(){ s.auto=!s.auto; autoT.set(s.auto); s.wait=0.2; } };
+})();
+
+/* ================= Chapter 2: Satellite link ================= */
+const O = (() => {
+  const st = makeStage($('#cv-orbit'));
+  const Re=6371, Hs=500, Rs=Re+Hs, thMax=Math.acos(Re/Rs), omega=Math.sqrt(3.986e5/(Rs*Rs*Rs)), SPEED=45, SRC=1e8;
+  const LAM=785e-9, DTEL=0.3, FOV=10e-6, DIV=12e-6;
+  const s = { th:-thMax*0.6, playing:!reduce, up:false, clouds:false, key:0, dots:[], flashes:[], spawn:0, t:0, drag:false, tu:0.45 };
+  const stars = Array.from({length:120}, () => ({x:Math.random(), y:Math.random()*0.8, r:Math.random()*1.2+0.3, a:Math.random()*0.6+0.2}));
+  const r0z = () => 30*Math.pow(3/30, s.tu);   // cm, looking straight up, at 785 nm
+  function link(th){
+    const sx=Rs*Math.sin(th), sy=Rs*Math.cos(th)-Re, L=Math.hypot(sx,sy), el=Math.atan2(sy,Math.abs(sx)), elD=el*180/Math.PI;
+    const vis = elD>=10, sinE = Math.max(Math.sin(el),0.05), am = 1/sinE;
+    const r0 = r0z()*Math.pow(sinE,0.6);          // cm along the slant path
+    const tb = LAM/(r0/100);                        // turbulence blur angle, rad
+    let eta, spot=0, spread=1;
+    if (!s.up){ spot = Math.hypot(LAM/DTEL, tb); eta = Math.min(1, (FOV/spot)**2); }
+    else { const dEff = Math.hypot(DIV, 2*tb); spread = dEff/DIV; eta = 1/(spread*spread); }
+    const Tgeo = Math.min(1, (DTEL/(L*1e3*DIV))**2);
+    let T = Tgeo * eta * Math.pow(0.8,am) * 0.25; if (s.clouds) T *= 1e-5;
+    const fib = Math.pow(10,-0.02*L)*0.25;
+    return { L, elD, vis, air: 10/sinE, r0, eta, spot, spread, rate: vis ? SRC*T : 0, fib: SRC*fib };
+  }
+  function fmtRate(r){
+    if (r<=0) return 'none';
+    if (r>=1){ const u=[[1e9,'billion'],[1e6,'million'],[1e3,'thousand']]; for (const [v,n] of u) if (r>=v) return `${(r/v).toFixed(r/v<10?1:0)} ${n} per second`; return `${Math.round(r)} per second`; }
+    const t=1/r, yr=t/3.156e7;
+    if (yr > 1.38e10) return '1 every … longer than the age of the universe';
+    if (t<60) return `1 every ${t.toFixed(t<10?1:0)} seconds`;
+    if (t<3600) return `1 every ${Math.round(t/60)} minutes`;
+    if (t<86400) return `1 every ${Math.round(t/3600)} hours`;
+    if (t<3.156e7) return `1 every ${Math.round(t/86400)} days`;
+    if (yr<1e6) return `1 every ${Math.round(yr).toLocaleString('en-US')} years`;
+    if (yr<1e9) return `1 every ${Math.round(yr/1e6)} million years`;
+    return `1 every ${Math.round(yr/1e9)} billion years`;
+  }
+  function fmtBits(b){ if (b<1000) return Math.round(b)+' bits'; if (b<1e6) return (b/1e3).toFixed(b<1e4?1:0)+' kbit'; return (b/1e6).toFixed(2)+' Mbit'; }
+  const logPos = r => r<=0 ? 0 : clamp((Math.log10(r)+20)/29, 0.01, 1);
+  const pos = $('#o-pos'), playBtn=$('#o-play'), tuIn=$('#o-tu');
+  const setPlay = v => { s.playing=v; playBtn.textContent = v ? 'Pause pass' : 'Play pass'; };
+  setPlay(s.playing);
+  playBtn.addEventListener('click', () => setPlay(!s.playing));
+  pos.addEventListener('input', () => { s.th = (pos.value/1000*2-1)*thMax; });
+  const showTu = () => { $('#o-tuo').textContent = 'r₀ ' + Math.round(r0z()) + ' cm'; };
+  tuIn.addEventListener('input', () => { s.tu = tuIn.value/100; showTu(); }); showTu();
+  bindSeg($('#o-dir'), v => { s.up = v==='up'; s.dots=[]; });
+  bindToggle($('#o-cloud'), false, v => s.clouds=v);
+  let G = {};
+  function geom(){
+    const {w,h}=st; const surfY=h*0.80, altD=h*0.58;
+    const Rd = clamp(((0.47*w)**2/altD - altD)/2, w*0.55, w*2.2);
+    const cx=w/2, cy=surfY+Rd, Ro=Rd+altD, phiMax=Math.acos(Rd/Ro), k=phiMax/thMax, aD=h*0.1;
+    G = { surfY, Rd, cx, cy, Ro, k, aD };
+  }
+  const satXY = th => [G.cx+G.Ro*Math.sin(th*G.k), G.cy-G.Ro*Math.cos(th*G.k)];
+  const inAir = (x,y) => Math.hypot(x-G.cx, y-G.cy) < G.Rd+G.aD;
+  const cv=st.canvas; let wasPlaying=false;
+  cv.addEventListener('pointerdown', e => { const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; const [sx,sy]=satXY(s.th);
+    if (Math.hypot(x-sx,y-sy) < 40){ s.drag=true; wasPlaying=s.playing; setPlay(false); cv.setPointerCapture(e.pointerId); e.preventDefault(); } });
+  cv.addEventListener('pointermove', e => { const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+    if (s.drag){ const phi=Math.atan2(x-G.cx, G.cy-y); s.th=clamp(phi/G.k,-thMax,thMax); }
+    else { const [sx,sy]=satXY(s.th); cv.style.cursor = Math.hypot(x-sx,y-sy)<40 ? 'grab' : 'default'; } });
+  const endDrag = () => { if (s.drag){ s.drag=false; setPlay(wasPlaying); } };
+  cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+  function frame(dt){
+    s.t += dt;
+    if (s.playing){ s.th += omega*SPEED*dt; if (s.th>thMax+0.01){ s.th=-thMax-0.01; s.key=0; } }
+    const lk = link(s.th);
+    if (lk.vis && s.playing) s.key += lk.rate*0.05*SPEED*dt;
+    if (document.activeElement!==pos) pos.value = Math.round((clamp(s.th/thMax,-1,1)+1)/2*1000);
+    $('#o-el').textContent = lk.elD>0 ? Math.round(lk.elD)+'°' : 'below';
+    $('#o-dist').textContent = Math.round(lk.L).toLocaleString('en-US')+' km';
+    $('#o-air').textContent = lk.vis ? Math.round(lk.air)+' km' : '–';
+    $('#o-r0').textContent = lk.vis ? (lk.r0<10 ? lk.r0.toFixed(1) : Math.round(lk.r0))+' cm' : '–';
+    const lossEl=$('#o-loss'); const loss = 1-lk.eta; lossEl.textContent = lk.vis ? Math.round(loss*100)+'%' : '–'; lossEl.style.color = !lk.vis ? '' : loss>0.6 ? C.rose : loss>0.25 ? C.amber : C.good;
+    $('#o-key').textContent = fmtBits(s.key);
+    $('#o-bsat').style.width = logPos(lk.rate)*100+'%'; $('#o-tsat').textContent = lk.vis ? (s.clouds ? fmtRate(lk.rate)+' (clouds)' : fmtRate(lk.rate)) : 'satellite too low';
+    $('#o-bfib').style.width = logPos(lk.fib)*100+'%'; $('#o-tfib').textContent = fmtRate(lk.fib);
+    draw(lk, dt);
+  }
+  function inset(ctx, lk, w, h){
+    const B = clamp(Math.min(w*0.2, h*0.36), 96, 150), x = w - B - 14, y = 14;
+    rrect(ctx,x,y,B,B+34,10); ctx.fillStyle='rgba(10,15,36,0.88)'; ctx.fill(); ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.stroke();
+    text(ctx, s.up ? 'BEAM AT SATELLITE' : 'DETECTOR IMAGE', x+B/2, y+13, {font:MONO,size:9.5,weight:600,color:C.muted,align:'center',spacing:'0.5px'});
+    const cx=x+B/2, cy=y+B/2+10;
+    if (!lk.vis){ text(ctx,'no signal',cx,cy,{size:13,color:C.dim,align:'center'}); return; }
+    const jit = s.tu*0.9 + 0.1;
+    if (!s.up){
+      const half = B*0.2;                                   // detector half-width = FOV/2
+      const rs = clamp((lk.spot/FOV)*half, 3, B*0.46);      // spot radius
+      const ox = Math.sin(s.t*6.3)*rs*0.25*jit + Math.sin(s.t*11.1)*rs*0.12*jit, oy = Math.cos(s.t*5.1)*rs*0.25*jit;
+      const g=ctx.createRadialGradient(cx+ox,cy+oy,0,cx+ox,cy+oy,rs*1.3); g.addColorStop(0,'rgba(255,247,222,0.95)'); g.addColorStop(0.35,'rgba(245,161,70,0.7)'); g.addColorStop(1,'rgba(168,52,105,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx+ox,cy+oy,rs*1.3,0,7); ctx.fill();
+      ctx.strokeStyle=C.teal; ctx.lineWidth=1.5; ctx.strokeRect(cx-half,cy-half,half*2,half*2);
+      const ok = lk.eta>0.75;
+      text(ctx, ok ? 'fits the detector' : 'spills off detector', cx, y+B+22, {size:12,weight:700,color: ok?C.good:C.rose, align:'center'});
+    } else {
+      const rf = clamp(10*Math.sqrt(lk.spread)*(B/130), 10, B*0.44);
+      const ox = (Math.sin(s.t*1.9)*0.55 + Math.sin(s.t*3.7+1)*0.3)*rf*0.7*jit, oy = Math.cos(s.t*2.3)*rf*0.5*jit;
+      const g=ctx.createRadialGradient(cx+ox,cy+oy,0,cx+ox,cy+oy,rf); g.addColorStop(0,rgba(C.beam,0.55)); g.addColorStop(1,rgba(C.beam,0));
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx+ox,cy+oy,rf,0,7); ctx.fill();
+      ctx.fillStyle='#DDE2F5'; ctx.beginPath(); ctx.arc(cx,cy,3,0,7); ctx.fill();
+      text(ctx, 'telescope', cx+6, cy-8, {font:MONO,size:9,color:C.muted});
+      text(ctx, lk.spread>2 ? 'wide and wandering' : 'fairly steady', cx, y+B+22, {size:12,weight:700,color: lk.spread>2?C.rose:C.good, align:'center'});
+    }
+  }
+  function draw(lk, dt){
+    st.begin(); const {ctx,w,h}=st; if (w<80||h<80) return; geom();
+    const sky=ctx.createLinearGradient(0,0,0,h); sky.addColorStop(0,'#070B1C'); sky.addColorStop(1,'#101A3E'); ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+    for (const p of stars){ ctx.fillStyle=`rgba(233,236,248,${p.a*(0.7+0.3*Math.sin(s.t*2+p.x*40))})`; ctx.fillRect(p.x*w,p.y*h,p.r,p.r); }
+    ctx.save(); ctx.setLineDash([3,8]); ctx.strokeStyle='rgba(168,175,212,0.28)'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(G.cx,G.cy,G.Ro,-Math.PI/2-1.2,-Math.PI/2+1.2); ctx.stroke(); ctx.restore();
+    const ag=ctx.createRadialGradient(G.cx,G.cy,G.Rd,G.cx,G.cy,G.Rd+G.aD*1.6); ag.addColorStop(0,'rgba(90,150,255,0.45)'); ag.addColorStop(0.55,'rgba(90,150,255,0.14)'); ag.addColorStop(1,'rgba(90,150,255,0)');
+    ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(G.cx,G.cy,G.Rd+G.aD*1.6,0,Math.PI*2); ctx.fill();
+    // eddies: more, stronger and livelier with turbulence
+    ctx.save(); ctx.beginPath(); ctx.arc(G.cx,G.cy,G.Rd+G.aD,0,Math.PI*2); ctx.arc(G.cx,G.cy,G.Rd,0,Math.PI*2,true); ctx.clip();
+    const ea = 0.03 + 0.16*s.tu, ne = Math.round(18 + 30*s.tu);
+    for (let i=0;i<ne;i++){ const a=-Math.PI/2 + ((i/ne)*1.6-0.8) + Math.sin(s.t*(0.3+s.tu)+i)*0.02 + s.t*0.01, rr=G.Rd+G.aD*(0.2+0.6*((i*0.37)%1));
+      const sz = G.aD*(0.9 - 0.45*s.tu);
+      ctx.fillStyle = i%2 ? `rgba(255,170,120,${ea})` : `rgba(120,200,255,${ea*1.1})`; ctx.beginPath(); ctx.ellipse(G.cx+rr*Math.cos(a), G.cy+rr*Math.sin(a), sz, sz*0.32, a+Math.PI/2+Math.sin(s.t+i)*0.3*s.tu, 0, 7); ctx.fill(); }
+    ctx.restore();
+    const eg=ctx.createLinearGradient(0,G.surfY,0,h); eg.addColorStop(0,'#1B3A4F'); eg.addColorStop(1,'#0C1A2A');
+    ctx.fillStyle=eg; ctx.beginPath(); ctx.arc(G.cx,G.cy,G.Rd,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(120,200,255,0.4)'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(G.cx,G.cy,G.Rd,-Math.PI/2-1.3,-Math.PI/2+1.3); ctx.stroke();
+    { const la=-Math.PI/2 - Math.min(0.45, (w*0.3)/G.Rd), lr=G.Rd+G.aD*0.5; text(ctx,'turbulent air',G.cx+lr*Math.cos(la), G.cy+lr*Math.sin(la),{font:MONO,size:11,weight:600,color:'rgba(170,205,255,0.9)',align:'center'}); }
+    const gx=G.cx, gy=G.surfY; const [sx,sy]=satXY(s.th);
+    const bx=sx-gx, by=sy-gy, bl=Math.hypot(bx,by), nx=-by/bl, ny=bx/bl;
+    const dishR=7, satR=7;
+    if (lk.vis){
+      const hwFar = 10 + (lk.L/1500)*34;
+      const upW = clamp(Math.sqrt(lk.spread)*1.3, 1, 3.4);
+      const wander = s.up ? (Math.sin(s.t*1.9)*0.55 + Math.sin(s.t*3.7+1)*0.3)*(0.25+0.75*s.tu) : 0;
+      const hwAt = u => s.up ? lerp(2, hwFar*upW, u) : lerp(2, hwFar, 1-u);
+      const cAt = u => s.up ? wander*hwFar*upW*0.7*u*u : 0;
+      ctx.save(); ctx.beginPath();
+      for (let i=0;i<=24;i++){ const u=i/24, px=gx+bx*u, py=gy+by*u, o=cAt(u)+hwAt(u); ctx.lineTo(px+nx*o, py+ny*o); }
+      for (let i=24;i>=0;i--){ const u=i/24, px=gx+bx*u, py=gy+by*u, o=cAt(u)-hwAt(u); ctx.lineTo(px+nx*o, py+ny*o); }
+      const bg=ctx.createLinearGradient(gx,gy,sx,sy); bg.addColorStop(0, rgba(C.beam, s.up?0.35:0.18)); bg.addColorStop(1, rgba(C.beam, s.up?0.1:0.4));
+      ctx.fillStyle=bg; ctx.fill(); ctx.restore();
+      s.spawn += dt*55; while (s.spawn>1){ s.spawn--; s.dots.push({ u: s.up?0:1, lat: clamp(randn()*0.45,-1,1), ph: Math.random()*6, dead:0 }); }
+      const jitA = s.up ? 1.5 + 6*s.tu : 0.5 + 3*s.tu;
+      for (const d of s.dots){
+        if (d.dead){ d.dead -= dt; continue; }
+        d.u += (s.up?1:-1)*1.05*dt;
+        const u=clamp(d.u,0,1), px=gx+bx*u, py=gy+by*u;
+        let off = cAt(u) + d.lat*hwAt(u);
+        const air = inAir(px,py); if (air) off += Math.sin(d.ph + s.t*9)*jitA;
+        d.x=px+nx*off; d.y=py+ny*off;
+        if (air && s.clouds){ const dd=Math.hypot(d.x-gx,d.y-gy); if (dd < G.aD*0.95 && dd > G.aD*0.35){ d.dead=0.25; d.miss=true; continue; } }
+        if (!s.up && d.u<=0){ const hit = (Math.abs(d.lat*hwAt(0)) < dishR*0.7 || Math.abs(d.lat)<0.12) && Math.random()<lk.eta+0.05; if (hit) s.flashes.push({x:gx,y:gy-4,t:0}); d.dead=0.35; d.miss=!hit; }
+        if (s.up && d.u>=1){ const hit = Math.abs(cAt(1)+d.lat*hwAt(1)) < satR; if (hit) s.flashes.push({x:sx,y:sy,t:0}); d.dead=0.35; d.miss=!hit; }
+      }
+      for (const d of s.dots){ if (d.x===undefined) continue; const a = d.dead ? clamp(d.dead/0.35,0,1)*(d.miss?0.5:1) : 1;
+        ctx.fillStyle = rgba(d.miss&&d.dead ? '#A8AFD4' : '#FFE3B0', 0.9*a); ctx.beginPath(); ctx.arc(d.x,d.y,1.8,0,7); ctx.fill(); }
+      s.dots = s.dots.filter(d => !(d.dead<0));
+    } else { s.dots=[]; }
+    for (const f of s.flashes){ f.t+=dt; const a=clamp(1-f.t/0.5,0,1); ctx.strokeStyle=rgba(C.amber,a); ctx.lineWidth=2; ctx.beginPath(); ctx.arc(f.x,f.y,6+f.t*30,0,7); ctx.stroke(); }
+    s.flashes = s.flashes.filter(f => f.t<0.5);
+    if (s.clouds){ ctx.fillStyle='rgba(205,214,238,0.62)'; for (const [dx,dy,r] of [[-40,-0.62,16],[-18,-0.72,22],[8,-0.66,19],[30,-0.6,15],[-6,-0.52,16],[48,-0.52,11],[-58,-0.5,11]]){ ctx.beginPath(); ctx.arc(gx+dx*(w/900+0.3), gy+dy*G.aD, r*(w/1100+0.35), 0, 7); ctx.fill(); } }
+    const tAng = lk.elD>0 ? Math.atan2(by,bx) : -Math.PI/2;
+    ctx.save(); ctx.translate(gx,gy-8); ctx.rotate(tAng); rrect(ctx,0,-4,20,8,2); ctx.fillStyle='#C9D0EC'; ctx.fill(); ctx.restore();
+    ctx.fillStyle='#DDE2F5'; ctx.beginPath(); ctx.arc(gx,gy-2,11,Math.PI,0); ctx.fill(); ctx.fillRect(gx-14,gy-3,28,5);
+    text(ctx,'GROUND STATION · 30 cm telescope',gx,gy+20,{font:MONO,size:11,weight:600,color:C.muted,align:'center',spacing:'1px'});
+    if (lk.elD>0){ const side = bx>=0 ? 1 : -1, r=34, a2=Math.atan2(by,bx); ctx.strokeStyle='rgba(245,184,65,0.7)'; ctx.lineWidth=1.3;
+      ctx.beginPath(); ctx.moveTo(gx,gy-8); ctx.lineTo(gx+side*(r+14),gy-8); ctx.stroke();
+      ctx.beginPath(); if (side>0) ctx.arc(gx,gy-8,r,a2,0); else ctx.arc(gx,gy-8,r,-Math.PI,a2); ctx.stroke();
+      text(ctx, Math.round(lk.elD)+'°', gx+side*(r+22), gy-8-14, {font:MONO,size:12,color:C.amber,align:'center'}); }
+    if (!lk.vis) text(ctx,'Satellite too low in the sky, waiting for it to rise…',gx,gy-G.aD-26,{size:15,weight:700,color:C.muted,align:'center'});
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(s.th*G.k);
+    ctx.fillStyle='#3D56C9'; ctx.fillRect(-26,-4,15,8); ctx.fillRect(11,-4,15,8); ctx.strokeStyle='#8C9BFF'; ctx.lineWidth=0.8; ctx.strokeRect(-26,-4,15,8); ctx.strokeRect(11,-4,15,8);
+    rrect(ctx,-8,-7,16,14,3); ctx.fillStyle='#DDE2F5'; ctx.fill(); ctx.fillStyle='#0A0F24'; ctx.beginPath(); ctx.arc(0,7,3.5,0,Math.PI); ctx.fill();
+    ctx.restore();
+    text(ctx,'SATELLITE · 500 km up',clamp(sx,80,w-80),sy-24,{font:MONO,size:11,weight:600,color:C.text,align:'center',spacing:'1px'});
+    inset(ctx, lk, w, h);
+    let cap = '';
+    if (lk.vis){
+      if (s.clouds) cap = 'Clouds block the light completely. Ground stations are built where skies are often clear.';
+      else if (s.up) cap = lk.spread>2 ? 'The air bends the beam right as it leaves. By orbit it has spread and wanders, so it often misses.' : 'Calm air: the upward beam stays fairly tight and steady.';
+      else cap = lk.eta<0.6 ? 'Turbulence blurs the image, so it spills off the tiny detector.' : 'The beam spreads out on the way down. Only the photons that land in the telescope count.';
+    }
+    if (cap){ const fs=clamp(w/60,12,16); ctx.font=`700 ${fs}px ${BODY}`;
+      if (ctx.measureText(cap).width < w-28) text(ctx,cap,w/2,h-16,{size:fs,weight:700,color:C.text,align:'center'});
+      else { const words=cap.split(' '), half=Math.ceil(words.length/2); text(ctx,words.slice(0,half).join(' '),w/2,h-34,{size:fs,weight:700,color:C.text,align:'center'}); text(ctx,words.slice(half).join(' '),w/2,h-15,{size:fs,weight:700,color:C.text,align:'center'}); } }
+  }
+  return { frame, toggle(){ setPlay(!s.playing); } };
+})();
+
+/* ================= Chapter 3: Wavefront through turbulence ================= */
+const T3 = (() => {
+  const st = makeStage($('#cv-turb'));
+  const D = 30, VIEW = 60, NS = 120, TR = 22;           // cm; samples every 0.5 cm
+  const s = { tu:0.45, wind:0.35, rays:true, ruler:1, playing:!reduce, ox:0, oy:173, t:0, psf:new Float32Array(Engine.N*Engine.N), peak:1 };
+  const tex = document.createElement('canvas'); tex.width=NS; tex.height=TR; const tcx=tex.getContext('2d'); const timg=tcx.createImageData(NS,TR);
+  const r0 = () => 40*Math.pow(3/40, s.tu);
+  const r0L = () => r0()*Math.pow(LAMBDA.v/500, 1.2);   // r0 at the chosen wavelength
+  const showR0 = () => { const r=r0L(); $('#t-r0o').textContent = 'r₀ ' + (r<10?r.toFixed(1):Math.round(r)) + ' cm'; };
+  LAMBDA.subs.push(showR0);
+  $('#t-str').addEventListener('input', e => { s.tu = e.target.value/100; showR0(); }); showR0();
+  $('#t-wind').addEventListener('input', e => s.wind = e.target.value/100);
+  bindSeg($('#t-ruler'), v => s.ruler = +v);
+  bindToggle($('#t-rays'), true, v => s.rays=v);
+  const pb=$('#t-play'); const setPlay=v=>{ s.playing=v; pb.textContent=v?'Pause':'Play'; }; setPlay(s.playing); pb.addEventListener('click',()=>setPlay(!s.playing));
+  const TAU = 2*Math.PI;
+  function fitLine(xs, ys){ const n=xs.length; let mx=0,my=0; for (let i=0;i<n;i++){ mx+=xs[i]; my+=ys[i]; } mx/=n; my/=n;
+    let sxy=0,sxx=0; for (let i=0;i<n;i++){ sxy+=(xs[i]-mx)*(ys[i]-my); sxx+=(xs[i]-mx)**2; } const b = sxx? sxy/sxx : 0;
+    let r=0; for (let i=0;i<n;i++){ const e=ys[i]-(my+b*(xs[i]-mx)); r+=e*e; } return { a:my-b*mx, b, rms:Math.sqrt(r/n) }; }
+  function frame(dt){
+    Engine.ensure();
+    if (s.playing){ s.ox += dt*lerp(3,60,s.wind); s.t += dt; }
+    draw();
+  }
+  function draw(){
+    st.begin(); const {ctx,w,h}=st; if (w<80||h<80) return;
+    const narrow = w < 640;
+    const P = narrow ? Math.min(w*0.62, h*0.34) : Math.min(h*0.74, w*0.3);
+    const px = narrow ? (w-P)/2 : w - P - 16, py = narrow ? 14 : (h-P)/2 - 8;
+    const vx = 16, vw = narrow ? w - 32 : px - 40;
+    const X = u => vx + u/VIEW*vw;
+    const oy = narrow ? P + 60 : 0, hh = h - oy;
+    const yTop = oy + hh*0.05, layT = oy + hh*0.2, layB = oy + hh*0.4, yL = oy + hh*0.8, yF = oy + hh*0.95;
+    const lam = LAMBDA.v, R0 = r0L(), sc = Math.pow(R0, -5/6), sc500 = Math.pow(r0(), -5/6);
+    // phase (radians) along the pupil centre line, piston removed over the view
+    const prof = new Float64Array(NS+1); let m=0;
+    for (let i=0;i<=NS;i++){ prof[i] = sc*Engine.samp(s.ox - VIEW/2 + i*VIEW/NS, s.oy); m += prof[i]; } m/=NS+1;
+    for (let i=0;i<=NS;i++) prof[i]-=m;
+    // drawn to scale: fixed pixels per micrometre of delay; the gap between lines is one wavelength
+    const G0 = Math.max(12, hh*0.05), gap = G0*lam/500, RH = G0*1.9;
+    const disp = new Float64Array(NS+1); for (let i=0;i<=NS;i++) disp[i] = clamp(prof[i]/TAU*gap, -gap*4, gap*4);
+    const dAt = u => { const q=clamp(u/VIEW*NS,0,NS-1e-6), i=Math.floor(q), f=q-i; return disp[i]*(1-f)+disp[i+1]*f; };
+    // turbulent layer: index fluctuations, contrast grows as r0 shrinks
+    const d=timg.data, vals=new Float64Array(NS*TR); let mm=0;
+    for (let j=0;j<TR;j++) for (let i=0;i<NS;i++){ const v=sc500*Engine.samp(s.ox-VIEW/2+i*VIEW/NS, s.oy + (j-TR/2)*3); vals[j*NS+i]=v; mm+=v; } mm/=NS*TR;
+    const hp = new Float64Array(NS*TR), tmp = new Float64Array(NS*TR), RB=12;
+    for (let j=0;j<TR;j++) for (let i=0;i<NS;i++){ let a=0,c=0; for (let k=-RB;k<=RB;k++){ const ii=i+k; if (ii<0||ii>=NS) continue; a+=vals[j*NS+ii]; c++; } tmp[j*NS+i]=a/c; }
+    for (let j=0;j<TR;j++) for (let i=0;i<NS;i++){ let a=0,c=0; for (let k=-3;k<=3;k++){ const jj=j+k; if (jj<0||jj>=TR) continue; a+=tmp[jj*NS+i]; c++; } hp[j*NS+i]=vals[j*NS+i]-a/c; }
+    for (let k=0;k<NS*TR;k++){ const v=clamp(hp[k]/(TAU*0.3),-1,1), a=Math.abs(v), p=k*4;
+      if (v>0){ d[p]=255; d[p+1]=150; d[p+2]=90; } else { d[p]=100; d[p+1]=170; d[p+2]=255; }
+      d[p+3] = 12 + 200*a; }
+    tcx.putImageData(timg,0,0);
+    ctx.save(); ctx.imageSmoothingEnabled=true; ctx.drawImage(tex, vx, layT, vw, layB-layT); ctx.restore();
+    ctx.strokeStyle='rgba(168,175,212,0.25)'; ctx.setLineDash([2,6]); ctx.beginPath(); ctx.moveTo(vx,layT); ctx.lineTo(vx+vw,layT); ctx.moveTo(vx,layB); ctx.lineTo(vx+vw,layB); ctx.stroke(); ctx.setLineDash([]);
+    text(ctx,'TURBULENT AIR · warm and cool pockets',vx+8,layT+12,{font:MONO,size:11,weight:600,color:C.text,spacing:'1px'});
+    text(ctx,'flat wavefronts from the satellite',vx+8,yTop+2,{font:MONO,size:11,color:C.muted});
+    // wavefront lines
+    const phase = ((s.t*38) % gap);
+    const a0 = (VIEW-D)/2, a1 = a0 + D;
+    for (let y = yTop + 14 + phase; y < yL; y += gap){
+      const f = y<layT ? 0 : y>layB ? 1 : (y-layT)/(layB-layT);
+      ctx.beginPath();
+      for (let i=0;i<=NS;i++){ const u=i/NS*VIEW; const yy = y + f*dAt(u); if (i===0) ctx.moveTo(X(u),yy); else ctx.lineTo(X(u),yy); }
+      ctx.strokeStyle = f>0.99 ? 'rgba(245,184,65,0.55)' : `rgba(233,236,248,${0.7-0.3*f})`; ctx.lineWidth=1.8; ctx.stroke();
+    }
+    // wavelength scale bar (between two flat lines above the air)
+    { const yb = yTop + 14 + phase + gap*0, xb = vx+vw-10; ctx.strokeStyle=C.muted; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(xb,yb); ctx.lineTo(xb,yb+gap); ctx.moveTo(xb-4,yb); ctx.lineTo(xb+4,yb); ctx.moveTo(xb-4,yb+gap); ctx.lineTo(xb+4,yb+gap); ctx.stroke();
+      ctx.strokeStyle=lamColour(lam); ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(xb,yb); ctx.lineTo(xb,yb+gap); ctx.stroke();
+      text(ctx,`1 wavelength (${lam} nm)`,xb-8,yb+gap/2,{font:MONO,size:10,color:C.muted,align:'right'}); }
+    // flatness ruler on one wrinkled wavefront
+    if (s.ruler){
+      const yR = layB + (yL-layB)*0.42, W = s.ruler*R0;
+      ctx.fillStyle = C.bg2; ctx.globalAlpha=0.7; ctx.fillRect(vx, yR-RH, vw, RH*2); ctx.globalAlpha=1;
+      let rsum=0, rn=0, band=0;
+      for (let u0 = 0; u0 < VIEW-0.5; u0 += W, band++){
+        const u1 = Math.min(VIEW, u0+W); if (u1-u0 < W*0.5 && band>0) break;
+        if (band%2===0){ ctx.fillStyle='rgba(233,236,248,0.06)'; ctx.fillRect(X(u0), yR-RH, X(u1)-X(u0), RH*2); }
+        ctx.strokeStyle='rgba(233,236,248,0.35)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(X(u0),yR+RH*0.8); ctx.lineTo(X(u0),yR+RH); ctx.stroke();
+        const xs=[], ys=[], ph=[]; for (let u=u0; u<=u1+1e-9; u+=VIEW/NS){ xs.push(u); ys.push(dAt(u)); ph.push(prof[Math.round(u/VIEW*NS)]); }
+        if (xs.length<2) continue;
+        const fit = fitLine(xs, ys), fr = fitLine(xs, ph); rsum += fr.rms*fr.rms*(u1-u0); rn += (u1-u0);
+        ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(233,236,248,0.9)'; ctx.lineWidth=1.3;
+        ctx.beginPath(); ctx.moveTo(X(u0), yR+fit.a+fit.b*u0); ctx.lineTo(X(u1), yR+fit.a+fit.b*u1); ctx.stroke(); ctx.setLineDash([]);
+      }
+      const rmsW = rn ? Math.sqrt(rsum/rn)/TAU : 0, flat = rmsW < 0.075;
+      ctx.beginPath(); for (let i=0;i<=NS;i++){ const u=i/NS*VIEW; if (i===0) ctx.moveTo(X(u),yR+dAt(u)); else ctx.lineTo(X(u),yR+dAt(u)); }
+      ctx.strokeStyle = flat ? C.good : C.rose; ctx.lineWidth=2.6; ctx.stroke();
+      const frac = rmsW>0 ? Math.max(2, Math.round(1/rmsW)) : 0;
+      text(ctx, `RULER: bands ${W<10?W.toFixed(1):Math.round(W)} cm wide (${s.ruler===1?'= r₀':'= 3 × r₀'})`, vx+8, yR-RH+11, {font:MONO,size:10.5,weight:600,color:C.text});
+      text(ctx, flat ? `within each band the wavefront is only ~λ/${frac} off a straight line → looks flat` : `within each band it strays ~λ/${frac} from straight → not flat`,
+        vx+8, yR+RH+12, {size:13,weight:700,color: flat?C.good:C.rose});
+    } else text(ctx,'wrinkled wavefronts',vx+8,layB+14,{font:MONO,size:11,color:C.muted});
+    // telescope
+    const xa=X(a0), xb=X(a1), xF=(xa+xb)/2;
+    ctx.fillStyle=C.bg2; ctx.fillRect(vx-2, yL+1, vw+4, h-yL);
+    ctx.strokeStyle='#5A659B'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(xa-6,yL-14); ctx.lineTo(xa-6,yF+6); ctx.lineTo(xb+6,yF+6); ctx.lineTo(xb+6,yL-14); ctx.stroke();
+    ctx.fillStyle='rgba(140,155,255,0.25)'; ctx.beginPath(); ctx.ellipse(xF,yL,(xb-xa)/2,5,0,0,7); ctx.fill(); ctx.strokeStyle='#8C9BFF'; ctx.lineWidth=1.5; ctx.stroke();
+    text(ctx,'TELESCOPE · 30 cm',xb+14,yL,{font:MONO,size:11,weight:600,color:C.muted,spacing:'1px'});
+    const fL = yF - yL;
+    if (s.rays){ const M=9;
+      for (let k=0;k<M;k++){ const u = a0 + (k+0.5)/M*D, xi=X(u); const du=0.8; const slope = (dAt(u+du)-dAt(u-du))/((X(u+du)-X(u-du)));
+        const xf = clamp(xF - fL*slope, xa, xb);
+        ctx.strokeStyle='rgba(255,122,89,0.75)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(xi + slope*40, yL-40); ctx.lineTo(xi,yL); ctx.lineTo(xf,yF); ctx.stroke(); } }
+    ctx.fillStyle='#DDE2F5'; ctx.fillRect(xF-9,yF,18,4);
+    text(ctx,'camera',xF+14,yF+2,{font:MONO,size:10,color:C.dim});
+    // PSF panel
+    const r = Engine.psf(D, sc, s.ox, s.oy, s.psf, false); s.peak=r.peak;
+    rrect(ctx,px-1,py-1,P+2,P+2,10); ctx.fillStyle='#04061A'; ctx.fill();
+    ctx.save(); rrect(ctx,px,py,P,P,9); ctx.clip(); Engine.paint(ctx, s.psf, evenCrop(150*500/lam), px, py, P, s.peak); ctx.restore();
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; rrect(ctx,px-1,py-1,P+2,P+2,10); ctx.stroke();
+    text(ctx,'WHAT THE CAMERA SEES',px+P/2,py+P+16,{font:MONO,size:11,weight:600,color:C.text,align:'center',spacing:'1px'});
+    const ratio = D/R0;
+    const v = ratio<1.3 ? 'a sharp dot that jiggles' : ratio<3.5 ? 'a blurred, wobbling spot' : 'a speckled, dancing blob';
+    text(ctx,v,px+P/2,py+P+34,{size:14,weight:700,color: ratio<1.3 ? C.good : ratio<3.5 ? C.amber : C.rose, align:'center'});
+    if (!narrow){ ctx.strokeStyle='rgba(168,175,212,0.3)'; ctx.setLineDash([3,5]); ctx.beginPath(); ctx.moveTo(xF+12,yF+2); ctx.quadraticCurveTo(px-20, yF, px-4, py+P*0.6); ctx.stroke(); ctx.setLineDash([]); }
+  }
+  return { frame, toggle(){ setPlay(!s.playing); } };
+})();
+
+/* ================= Chapter 4: Fried parameter ================= */
+const LUT_CYC = makeLUT([[0,'#F5B841'],[0.25,'#FF6B81'],[0.5,'#6F6BFF'],[0.75,'#3FC1B5'],[1,'#F5B841']]);
+const F4 = (() => {
+  const st = makeStage($('#cv-fried'));
+  const N = Engine.N;
+  const s = { r0:8, D:30, long:false, patch:true, tt:false, playing:!reduce, ox:0, oy:311, psf:new Float32Array(N*N), acc:new Float32Array(N*N), accN:0, strehl:0, peak:1, sAvg:0, dirty:'' };
+  const pc = document.createElement('canvas'); pc.width=pc.height=100; const pcx=pc.getContext('2d'); const pimg=pcx.createImageData(100,100);
+  const r0in=$('#f-r0'), Din=$('#f-D');
+  const resetAcc = () => { s.acc.fill(0); s.accN=0; s.sAvg=0; };
+  r0in.addEventListener('input', () => { s.r0=+r0in.value; resetAcc(); upd(); });
+  Din.addEventListener('input', () => { s.D=+Din.value; resetAcc(); upd(); });
+  document.querySelectorAll('.chip[data-r0]').forEach(b => b.addEventListener('click', () => { s.r0=+b.dataset.r0; r0in.value=s.r0; resetAcc(); upd(); }));
+  bindSeg($('#f-exp'), v => { s.long = v==='long'; resetAcc(); });
+  bindToggle($('#f-tt'), false, v => { s.tt=v; resetAcc(); upd(); });
+  bindToggle($('#f-patch'), true, v => s.patch=v);
+  const pb=$('#f-play'); const setPlay=v=>{ s.playing=v; pb.textContent=v?'Pause':'Play'; }; setPlay(s.playing); pb.addEventListener('click',()=>setPlay(!s.playing));
+  const fmt = v => (v%1 ? v.toFixed(1) : String(v));
+  const r0L = () => s.r0*Math.pow(LAMBDA.v/500, 1.2);
+  const fmtc = v => v<10 ? v.toFixed(1) : String(Math.round(v));
+  LAMBDA.subs.push(() => { resetAcc(); upd(); });
+  function upd(){
+    $('#f-r0o').textContent = fmt(s.r0)+' cm'; $('#f-Do').textContent = s.D+' cm';
+    const ratio = s.D/r0L(); $('#f-ratio').textContent = ratio<1 ? 'less than 1' : '≈ '+(ratio<10?ratio.toFixed(1):Math.round(ratio));
+    const vd=$('#f-verdict'); let txt, c;
+    if (s.tt){ if (ratio<3) { txt='Sharp, steady spot'; c=C.good; } else if (ratio<7) { txt='Steady core, speckled halo'; c=C.amber; } else { txt='Still speckled'; c=C.rose; } }
+    else { if (ratio<1.3) { txt='Sharp spot that wanders'; c=C.good; } else if (ratio<3.5) { txt='Blurred, wobbling spot'; c=C.amber; } else { txt='Broken into speckles'; c=C.rose; } }
+    vd.textContent=txt; vd.style.color=c; vd.style.background=rgba(c,0.16);
+    $('#f-lam').textContent = `${fmtc(r0L())} cm at ${LAMBDA.v} nm`;
+  }
+  upd();
+  let domT=0;
+  function frame(dt){
+    Engine.ensure();
+    if (s.playing) s.ox += dt*28;
+    const sc = Math.pow(r0L(),-5/6), key=`${s.r0}|${s.D}|${s.tt}|${LAMBDA.v}`;
+    if (s.playing || s.dirty!==key){ const r = Engine.psf(s.D, sc, s.ox, s.oy, s.psf, s.tt); s.peak=r.peak; s.strehl=r.strehl; s.dirty=key;
+      if (s.long && s.playing){ for (let i=0;i<N*N;i++) s.acc[i]+=s.psf[i]; s.accN++; }
+      s.sAvg = s.sAvg ? lerp(s.sAvg, s.strehl, 0.08) : s.strehl; }
+    domT-=dt; if (domT<=0){ domT=0.25; const sp = s.sAvg*100; $('#f-strehl').textContent = (sp>=10? Math.round(sp) : sp.toFixed(1))+'%'; }
+    draw(sc);
+  }
+  function draw(sc){
+    st.begin(); const {ctx,w,h}=st; if (w<80||h<80) return;
+    const gap=24, labelH=44, stack = w < 600;
+    const P = stack ? Math.min(w-32, (h - 2*labelH - 40)/2) : Math.min(h - labelH - 30, (w - gap*3)/2);
+    const x0 = stack ? (w-P)/2 : (w - (P*2+gap))/2, y0 = 18;
+    const Lx = x0, Rx = stack ? x0 : x0 + P + gap;
+    const Ry = stack ? y0 + P + labelH + 10 : y0;
+    // ---- left: wavefront over the mirror, one colour cycle = one wavelength ----
+    rrect(ctx,Lx,y0,P,P,12); ctx.fillStyle='#0B1130'; ctx.fill(); ctx.strokeStyle=C.line; ctx.lineWidth=1; ctx.stroke();
+    const scl = (P-96)/s.D, cx = Lx+P/2, cy = y0+P/2+8, Rpx = s.D/2*scl;
+    const D=s.D, d=pimg.data; let m=0, n=0; const vals=new Float32Array(D*D), inside=new Uint8Array(D*D);
+    for (let j=0;j<D;j++) for (let i=0;i<D;i++){ const dx=i+0.5-D/2, dy=j+0.5-D/2, v=sc*Engine.samp(s.ox+dx, s.oy+dy); vals[j*D+i]=v; if (dx*dx+dy*dy<=D*D/4){ inside[j*D+i]=1; m+=v; n++; } }
+    m/=n; let sxv=0, syv=0, sxx=0, syy=0;
+    if (s.tt) for (let j=0;j<D;j++) for (let i=0;i<D;i++){ const v=vals[j*D+i]; if (!inside[j*D+i]) continue; const dx=i+0.5-D/2, dy=j+0.5-D/2; sxv+=dx*(v-m); syv+=dy*(v-m); sxx+=dx*dx; syy+=dy*dy; }
+    const gxs=sxx?sxv/sxx:0, gys=syy?syv/syy:0, TAU=2*Math.PI;
+    for (let j=0;j<D;j++) for (let i=0;i<D;i++){ const v=vals[j*D+i], p=(j*100+i)*4;
+      const ph = v-m-gxs*(i+0.5-D/2)-gys*(j+0.5-D/2); let t = (ph/TAU) % 1; if (t<0) t+=1;
+      const li=(t*255)|0; d[p]=LUT_CYC[li*3]; d[p+1]=LUT_CYC[li*3+1]; d[p+2]=LUT_CYC[li*3+2]; d[p+3]=255; }
+    pcx.clearRect(0,0,100,100); pcx.putImageData(pimg,0,0);
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,Rpx,0,7); ctx.clip(); ctx.imageSmoothingEnabled=true; ctx.drawImage(pc,0,0,D,D,cx-Rpx,cy-Rpx,Rpx*2,Rpx*2);
+    if (s.patch){ const pr = r0L()*scl/2, sx=pr*2, sy=pr*Math.sqrt(3); ctx.strokeStyle='rgba(10,15,36,0.75)'; ctx.lineWidth=1.6;
+      let row=0; for (let y=cy - Math.ceil(Rpx/sy)*sy; y<=cy+Rpx+sy; y+=sy, row++){ const off = (row%2)*pr;
+        for (let x=cx - Math.ceil(Rpx/sx)*sx - off; x<=cx+Rpx+sx; x+=sx){ ctx.beginPath(); ctx.arc(x,y,pr*0.96,0,7); ctx.stroke(); } } }
+    ctx.restore();
+    ctx.strokeStyle='#C9D0EC'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(cx,cy,Rpx,0,7); ctx.stroke();
+    const bw = Math.min(r0L()*scl, P*0.4), by = y0+P-16;
+    ctx.strokeStyle=C.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(Lx+14,by); ctx.lineTo(Lx+14+bw,by); ctx.moveTo(Lx+14,by-5); ctx.lineTo(Lx+14,by+5); ctx.moveTo(Lx+14+bw,by-5); ctx.lineTo(Lx+14+bw,by+5); ctx.stroke();
+    text(ctx, r0L()*scl > P*0.4 ? `r₀ = ${fmtc(r0L())} cm at ${LAMBDA.v} nm (wider than shown)` : `r₀ = ${fmtc(r0L())} cm at ${LAMBDA.v} nm`,Lx+20+bw,by,{font:MONO,size:12,color:C.text});
+    text(ctx,`mirror ${s.D} cm`,Lx+P-14,y0+16,{font:MONO,size:12,color:C.muted,align:'right'});
+    // cyclic colour key
+    const kx=Lx+14, ky=y0+11, kw=78; const kg=ctx.createLinearGradient(kx,0,kx+kw,0);
+    [[0,'#F5B841'],[0.25,'#FF6B81'],[0.5,'#6F6BFF'],[0.75,'#3FC1B5'],[1,'#F5B841']].forEach(([p,c]) => kg.addColorStop(p,c));
+    ctx.fillStyle=kg; ctx.fillRect(kx,ky,kw,7);
+    text(ctx,'1 colour cycle = 1 wavelength',kx,ky+18,{font:MONO,size:10,color:C.dim});
+    text(ctx, s.tt ? 'overall tilt removed' : 'tilt included (stripes)', kx, ky+31, {font:MONO,size:10,color: s.tt?C.teal:C.dim});
+    text(ctx,'THE WAVEFRONT ON THE MIRROR',Lx+P/2,y0+P+18,{font:MONO,size:11,weight:600,color:C.text,align:'center',spacing:'1px'});
+    text(ctx,'within one r₀ circle the colour changes only a little',Lx+P/2,y0+P+36,{size:12.5,color:C.muted,align:'center'});
+    // ---- right: image ----
+    rrect(ctx,Rx,Ry,P,P,12); ctx.fillStyle='#04061A'; ctx.fill();
+    const CROP=evenCrop(224*500/LAMBDA.v); const src = s.long && s.accN>0 ? s.acc : s.psf;
+    let norm = s.peak; if (s.long && s.accN>0){ norm=0; for (let i=0;i<N*N;i++) if (s.acc[i]>norm) norm=s.acc[i]; }
+    ctx.save(); rrect(ctx,Rx,Ry,P,P,12); ctx.clip(); Engine.paint(ctx, src, CROP, Rx, Ry, P, norm);
+    const pxs = P/CROP, icx=Rx+P/2, icy=Ry+P/2;
+    const airy = 2.44*N/s.D/2*pxs, seeing = 1.0*N/r0L()/2*pxs;
+    ctx.setLineDash([4,4]); ctx.lineWidth=1.5;
+    ctx.strokeStyle=rgba(C.teal,0.9); ctx.beginPath(); ctx.arc(icx,icy,airy,0,7); ctx.stroke();
+    ctx.strokeStyle=rgba(C.rose,0.85); ctx.beginPath(); ctx.arc(icx,icy,seeing,0,7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.restore();
+    ctx.strokeStyle=C.line; ctx.lineWidth=1; rrect(ctx,Rx,Ry,P,P,12); ctx.stroke();
+    text(ctx,'◌ perfect-air spot',Rx+12,Ry+16,{size:12,color:C.teal});
+    text(ctx,'◌ blur size set by r₀',Rx+12,Ry+33,{size:12,color:C.rose});
+    if (s.tt) text(ctx,'tip-tilt removed',Rx+P-12,Ry+16,{font:MONO,size:11,color:C.teal,align:'right'});
+    text(ctx, s.long ? 'LONG EXPOSURE OF A STAR' : 'SNAPSHOT OF A STAR', Rx+P/2, Ry+P+18, {font:MONO,size:11,weight:600,color:C.text,align:'center',spacing:'1px'});
+    text(ctx, s.long ? (s.tt ? 'with tilt removed, the core stays put' : 'the dancing speckles average into a wide blur') : 'brightness rescaled so you can always see it', Rx+P/2, Ry+P+36, {size:13,color:C.muted,align:'center'});
+  }
+  return { frame, toggle(){ setPlay(!s.playing); } };
+})();
+
+/* ================= Navigation ================= */
+const ids = ['qkd','orbit','turbulence','fried'], mods=[Q,O,T3,F4];
+const secs = ids.map(id => document.getElementById(id)), tabs=[...document.querySelectorAll('.tab')];
+let cur = Math.max(0, ids.indexOf(location.hash.slice(1)));
+function show(i){
+  cur = (i+ids.length)%ids.length;
+  secs.forEach((s,k) => s.hidden = k!==cur);
+  tabs.forEach((t,k) => t.setAttribute('aria-selected', k===cur));
+  $('#prev').textContent = '← ' + (cur>0 ? tabs[cur-1].querySelector('.t').textContent : tabs[ids.length-1].querySelector('.t').textContent);
+  $('#next').textContent = (cur<ids.length-1 ? tabs[cur+1].querySelector('.t').textContent : tabs[0].querySelector('.t').textContent) + ' →';
+  try { history.replaceState(null,'','#'+ids[cur]); } catch(e){}
+}
+tabs.forEach(t => t.addEventListener('click', () => show(+t.dataset.go)));
+$('#prev').addEventListener('click', () => { show(cur-1); window.scrollTo({top:0}); });
+$('#next').addEventListener('click', () => { show(cur+1); window.scrollTo({top:0}); });
+window.addEventListener('hashchange', () => { const k=ids.indexOf(location.hash.slice(1)); if (k>=0 && k!==cur) show(k); });
+const fsb=$('#fsbtn');
+function toggleFS(){ try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{}); } catch(e){} }
+if (!document.fullscreenEnabled) fsb.hidden = true; fsb.addEventListener('click', toggleFS);
+document.addEventListener('keydown', e => {
+  const tg=e.target, tag=tg.tagName;
+  if (tag==='INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key==='ArrowRight' || e.key==='PageDown'){ e.preventDefault(); show(cur+1); }
+  else if (e.key==='ArrowLeft' || e.key==='PageUp'){ e.preventDefault(); show(cur-1); }
+  else if ((e.key==='f' || e.key==='F')){ toggleFS(); }
+  else if (e.key===' ' && tag!=='BUTTON'){ e.preventDefault(); mods[cur].toggle(); }
+});
+LAMBDA.set(500);
+show(cur);
+let last = performance.now();
+function loop(now){ const dt = Math.min(0.05, (now-last)/1000); last=now; try { mods[cur].frame(dt); } catch(err){ console.error(err); } requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+})();
+</script>
+</html>

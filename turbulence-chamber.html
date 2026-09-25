@@ -1,0 +1,1926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turbulence Chamber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0c1217;
+  --panel: #121a21;
+  --panel-2: #17212a;
+  --line: #243240;
+  --line-2: #2f3f4e;
+  --text: #dbe4ea;
+  --muted: #92a2af;
+  --faint: #62717d;
+  --acrylic: #cde2ee;
+  --cold: #4aa0e3;
+  --hot: #f07a3c;
+  --beam: #e8457a;
+  --accent: #86c7d6;
+  --good: #6cc49a;
+  --warn: #e7b453;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.5 var(--f-body);
+  padding: max(16px, env(safe-area-inset-top, 0px)) 20px max(24px, env(safe-area-inset-bottom, 0px));
+}
+.wrap { max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: 0.01em; }
+h1 { font-size: 30px; line-height: 1.1; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.nocase { text-transform: none; letter-spacing: 0.02em; }
+sub { font-size: 0.72em; line-height: 0; }
+.mono, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.eyebrow { font-family: var(--f-display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--beam); margin-bottom: 4px; }
+.sub { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 8px; padding: 3px; background: var(--panel); gap: 3px; }
+.seg button { font: 500 13px/1.2 var(--f-display); letter-spacing: 0.03em; color: var(--muted); background: transparent; border: 0; border-radius: 5px; padding: 8px 14px; cursor: pointer; text-align: left; }
+.seg button small { display: block; font: 400 11px var(--f-mono); color: var(--faint); margin-top: 2px; }
+.seg button[aria-checked="true"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-2); }
+.seg button[aria-checked="true"] small { color: var(--beam); }
+.seg.small button { padding: 5px 10px; font-size: 12px; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 16px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 12px/1 var(--f-display); letter-spacing: 0.04em; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { color: var(--text); border-color: var(--accent); background: #1b2a33; }
+.chip .sw { width: 18px; height: 8px; border-radius: 2px; display: inline-block; }
+.iconbtn { font: 500 12px/1 var(--f-display); letter-spacing: 0.04em; color: var(--text); background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+.iconbtn:hover, .chip:hover { border-color: var(--accent); }
+.canvas-wrap { position: relative; width: 100%; }
+#chamber { display: block; width: 100%; height: auto; border-radius: 6px; background: var(--bg); cursor: crosshair; touch-action: manipulation; }
+.tip { position: absolute; pointer-events: none; background: rgba(12,18,23,0.92); border: 1px solid var(--line-2); border-radius: 6px; padding: 6px 8px; font: 12px/1.4 var(--f-mono); color: var(--text); white-space: nowrap; transform: translate(12px, 12px); }
+.below-canvas { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.legend { display: flex; align-items: center; gap: 8px; }
+.legend canvas { width: 180px; height: 10px; border-radius: 2px; display: block; }
+.legend .ticks { display: flex; justify-content: space-between; width: 180px; font: 11px var(--f-mono); color: var(--muted); }
+
+/* controls */
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.group { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.group[aria-disabled="true"] .ctl { opacity: 0.45; }
+.ctl { display: flex; flex-direction: column; gap: 4px; }
+.ctl-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ctl label { font-size: 13px; color: var(--text); }
+.ctl output { font: 12px var(--f-mono); color: var(--muted); text-align: right; }
+.ctl output b { color: var(--text); font-weight: 500; }
+.note { font-size: 12px; color: var(--faint); margin: 0; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; cursor: pointer; --pct: 50%; --c: var(--accent); }
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--c) var(--pct), var(--line-2) var(--pct)); }
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line-2); }
+input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--c); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--text); border: 3px solid var(--c); margin-top: -6px; }
+input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--text); border: 3px solid var(--c); }
+input[type="range"]:disabled { cursor: not-allowed; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.check input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+.ports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.port { font: 500 12px/1.2 var(--f-display); letter-spacing: 0.03em; text-align: left; color: var(--text); background: var(--panel); border: 1px solid var(--line-2); border-radius: 6px; padding: 7px 8px; cursor: pointer; display: flex; justify-content: space-between; gap: 6px; }
+.port span:last-child { font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.port[data-state="beam"], .port[data-state="beamwin"] { border-color: #6b2a42; }
+.port[data-state="beamwin"] span:last-child, .port[data-state="window"] span:last-child { color: #9fd4ff; }
+.port[data-state="beam"] span:last-child { color: var(--beam); }
+.port[data-state="open"] span:last-child { color: var(--good); }
+.port[data-state="fan"] span:last-child { color: var(--accent); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+details.adv summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+details.adv[open] summary { margin-bottom: 8px; }
+
+/* receiver */
+.rx-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rx { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rx canvas { width: 100%; aspect-ratio: 1 / 1; max-width: 100%; display: block; border-radius: 6px; background: #081016; }
+.rx .cap { display: flex; justify-content: space-between; gap: 6px; font: 11px var(--f-mono); color: var(--muted); }
+.rx h3 { font-size: 12px; }
+.badge { font: 500 11px/1 var(--f-mono); color: var(--beam); border: 1px solid #6b2a42; border-radius: 999px; padding: 4px 8px; }
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; margin-top: 12px; }
+.metric { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.metric span:first-child { color: var(--muted); font-size: 12.5px; }
+.metric span:last-child { font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.metric.hero span:last-child { font-size: 17px; color: var(--text); }
+.pill { display: inline-block; font: 500 11px/1 var(--f-mono); border-radius: 999px; padding: 3px 7px; margin-left: 6px; vertical-align: 1px; }
+.chart { position: relative; }
+.chart canvas { width: 100%; height: 150px; display: block; }
+.chart.small canvas { height: 90px; }
+.chart .tip { transform: translate(10px, -110%); }
+.explain { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+.steps { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; max-width: 72ch; color: var(--text); }
+.steps li::before { counter-increment: s; content: counter(s); font: 600 13px/24px var(--f-display); text-align: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line-2); color: var(--muted); }
+.steps b { font-weight: 600; }
+.model p, .model li { color: var(--muted); font-size: 13px; max-width: 72ch; }
+.model ul { padding-left: 18px; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.model b { color: var(--text); font-weight: 500; }
+footer { color: var(--faint); font-size: 12px; }
+@media (max-width: 1080px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .explain { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  body { padding-left: 16px; padding-right: 16px; }
+  h1 { font-size: 24px; }
+  .metrics { grid-template-columns: minmax(0, 1fr); }
+  .seg button { padding: 7px 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">QCloudLab · hot/cold-air mixing chamber</div>
+      <h1>Turbulence Chamber</h1>
+      <p class="sub">Live model of the chamber seen from above, at the height of the openings (mid-height). 1.0 × 0.6 × 0.31 m, probe beam λ = 795 nm.</p>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="Beam configuration" id="cfgSeg">
+      <button role="radio" aria-checked="true" data-cfg="short">Short path<small>top ↔ bottom · 0.6 m</small></button>
+      <button role="radio" aria-checked="false" data-cfg="long">Long path<small>left ↔ right · 1.0 m</small></button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="col">
+      <section class="panel" aria-label="Chamber view">
+        <div class="panel-head">
+          <div class="chips" role="group" aria-label="Colour the air by">
+            <button class="chip" data-ov="temp" aria-pressed="true"><span class="sw" style="background:linear-gradient(90deg,#2f7fc4,#8f97a8,#f07a3c)"></span><span>Temperature</span></button>
+            <button class="chip" data-ov="speed" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#0f2630,#1f8a96,#d9fbff)"></span><span>Wind speed</span></button>
+            <button class="chip" data-ov="vort" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#3b8fe0,#1c252d,#f08a3c)"></span><span>Eddies</span></button>
+            <button class="chip" data-ov="cn2" aria-pressed="false"><span class="sw" style="background:linear-gradient(90deg,#1a1026,#8a2f86,#ffd9ec)"></span><span>Optical turbulence C<sub>n</sub>²</span></button>
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="streaks" checked> Air tracers</label>
+            <button class="iconbtn" id="playBtn" aria-label="Pause">Pause</button>
+            <button class="iconbtn" id="resetBtn">Restart</button>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="chamber" aria-label="Top view of the turbulence chamber with simulated airflow"></canvas>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <div class="below-canvas">
+          <div class="legend"><span id="legLabel">Temperature</span>
+            <div><canvas id="legend" width="180" height="10"></canvas><div class="ticks" id="legTicks"></div></div>
+          </div>
+          <div class="mono" id="clock">t = 0.00 s</div>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Controls">
+        <div class="controls">
+          <div class="group">
+            <h3>Fans with collimators</h3>
+            <div class="ctl"><div class="ctl-top"><label for="fanL">Left fan</label><output id="fanLOut"></output></div>
+              <input type="range" id="fanL" min="0" max="100" step="1" value="30"></div>
+            <div class="ctl"><div class="ctl-top"><label for="fanR">Right fan</label><output id="fanROut"></output></div>
+              <input type="range" id="fanR" min="0" max="100" step="1" value="30"></div>
+            <label class="check"><input type="checkbox" id="linkFans" checked> Move both fans together</label>
+          </div>
+          <div class="group">
+            <h3>Heaters</h3>
+            <div class="ctl"><div class="ctl-top"><label for="heatL">Left heater</label><output id="heatLOut"></output></div>
+              <input type="range" id="heatL" min="20" max="120" step="1" value="40" style="--c: var(--cold)"></div>
+            <div class="ctl"><div class="ctl-top"><label for="heatR">Right heater</label><output id="heatROut"></output></div>
+              <input type="range" id="heatR" min="20" max="120" step="1" value="100" style="--c: var(--hot)"></div>
+            <p class="note">“Jet” is the air temperature leaving each collimator, taken from the simulation.</p>
+          </div>
+          <div class="group">
+            <h3>Beam</h3>
+            <div class="ctl"><div class="ctl-top"><label for="beamD">Beam diameter (1/e²)</label><output id="beamDOut"></output></div>
+              <input type="range" id="beamD" min="0" max="1000" step="1" value="500" style="--c: var(--beam)"></div>
+            <label class="check"><input type="checkbox" id="rmTilt"> Correct tip/tilt (steering mirror)</label>
+            <label class="check"><input type="checkbox" id="longExp"> Long-exposure focal spot</label>
+          </div>
+          <div class="group">
+            <h3>Openings (Ø 5 cm)</h3>
+            <div class="ports" id="ports">
+              <button class="port" data-port="top"><span>Top</span><span></span></button>
+              <button class="port" data-port="bottom"><span>Bottom</span><span></span></button>
+              <button class="port" data-port="left"><span>Top-left</span><span></span></button>
+              <button class="port" data-port="right"><span>Top-right</span><span></span></button>
+            </div>
+            <p class="note">Click to cycle open → window → blocked (also on the drawing). A window is sealed to air but lets the beam through, so the beam's openings switch between open and window.</p>
+          </div>
+          <div class="group" id="taylorGroup">
+            <h3>Taylor fan (bottom opening)</h3>
+            <div class="ctl"><div class="ctl-top"><label for="taylor">Crosswind</label><output id="taylorOut"></output></div>
+              <input type="range" id="taylor" min="0" max="50" step="1" value="0"></div>
+            <p class="note" id="taylorNote">Long path only. It blows across the beam so the turbulence drifts past it.</p>
+          </div>
+          <div class="group">
+            <h3>Playback</h3>
+            <div class="ctl"><div class="ctl-top"><label for="speed">Slow motion</label><output id="speedOut"></output></div>
+              <input type="range" id="speed" min="0" max="6" step="1" value="3"></div>
+            <div class="row"><button class="iconbtn" id="skipBtn">Skip ahead 1 s</button></div>
+            <details class="adv"><summary>Calibration</summary>
+              <div class="ctl"><div class="ctl-top"><label for="calib">C<sub>n</sub>² scale factor</label><output id="calibOut"></output></div>
+                <input type="range" id="calib" min="-100" max="100" step="1" value="0"></div>
+              <p class="note">Scales all C<sub>n</sub>² values. Match r₀ to a wavefront-sensor measurement at one setting, then the other settings follow the model.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-label="Receiver">
+        <div class="panel-head"><h2>At the receiver</h2><span class="badge" id="pathBadge">short path · 0.60 m</span></div>
+        <div class="rx-grid">
+          <div class="rx">
+            <h3>Wavefront</h3>
+            <canvas id="wfs" width="256" height="256" aria-label="Wavefront phase across the beam"></canvas>
+            <div class="cap"><span id="wfsScale"></span><span id="wfsRange"></span></div>
+          </div>
+          <div class="rx">
+            <h3>Focal spot</h3>
+            <canvas id="psf" width="256" height="256" aria-label="Focal spot after a lens"></canvas>
+            <div class="cap"><span id="psfScale"></span><span id="psfStrehl"></span></div>
+          </div>
+        </div>
+        <p class="note" style="margin-top:8px">Left: phase across the beam with Shack–Hartmann slope arrows (horizontal = across the chamber floor, vertical = height). Right: the spot a lens would form (scaled to its own peak), with its recent centre positions. The dashed circle is the spot without turbulence.</p>
+        <div class="metrics" id="metrics"></div>
+      </section>
+
+      <section class="panel" aria-label="Turbulence along the beam">
+        <div class="panel-head"><h2><span class="nocase">C<sub>n</sub>²</span> along the beam</h2><span class="note mono" id="profNote"></span></div>
+        <div class="chart" id="profChart"><canvas id="prof"></canvas><div class="tip" hidden></div></div>
+        <div class="panel-head" style="margin-top:12px; margin-bottom:6px"><h2>Fried parameter <span class="nocase">r₀</span> over time</h2><span class="note mono" id="histNote"></span></div>
+        <div class="chart small" id="histChart"><canvas id="hist"></canvas><div class="tip" hidden></div></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel explain" aria-label="How it works">
+    <div>
+      <h2>How the chamber makes turbulence</h2>
+      <ol class="steps">
+        <li><span><b>Heat.</b> Each heater warms the air in its end compartment. Room air comes in through the perforated end walls. Set one heater lower than the other to get a cooler and a warmer stream.</span></li>
+        <li><span><b>Collimated jets.</b> Each fan pushes its compartment air through a honeycomb collimator, so it leaves as a straight jet aimed at the centre.</span></li>
+        <li><span><b>Collision and mixing.</b> The two jets meet head-on in the mixing region. The shear and the temperature contrast break the meeting zone into eddies, so hot and cold pockets end up side by side. Warm air has a lower refractive index, so each pocket delays the light by a different amount. Switch the view to C<sub>n</sub>² to see where this is strongest.</span></li>
+        <li><span><b>Spill-over.</b> The mixed air escapes through the gap into the open section and out of whichever openings are open.</span></li>
+        <li><span><b>Short vs long path.</b> On the short path the beam runs straight through the mixing region. On the long path it crosses the open section, which only the spilled-over plume reaches. The Taylor fan blows that turbulent air across the beam, so the phase pattern drifts over the aperture as a frozen pattern (Taylor's hypothesis).</span></li>
+        <li><span><b>Why about 30 % fan speed.</b> With slow jets, the hot air rises toward the lid and leaves the beam height before the streams meet. With fast jets, the fans pull in more room air, which dilutes the temperature contrast. The model peaks near 30 %, which matches your earlier characterization (at least in some cases).</span></li>
+      </ol>
+    </div>
+    <div class="model">
+      <h2>What the model does</h2>
+      <ul>
+        <li><b>Airflow:</b> 2-D incompressible flow in the plane of the openings, 6.25 mm grid, with the walls, heaters, fans, vents and openings from the diagram. The fans and heater blowers are fixed-velocity inlets with about 12 % fan turbulence.</li>
+        <li><b>3-D effects, simplified:</b> buoyant air leaves the beam plane when jets are slow (Richardson-number weighted), air can leak in or out of the plane (drawn-in air is at room temperature), and friction from floor and lid damps large eddies.</li>
+        <li><b>Optical turbulence:</b> C<sub>n</sub>² = (79×10⁻⁶ P / T²)² C<sub>T</sub>², with C<sub>T</sub>² from the simulated temperature structure function at 1.25 cm and P = 888 hPa (Calgary). r₀ = (0.423 k² ∫C<sub>n</sub>² dz)<sup>−3/5</sup>; Rytov variance for a plane wave.</li>
+        <li><b>Receiver:</b> von Kármán phase screens (L₀ = 8 cm, l₀ = 1 mm) scaled to the simulated r₀, moved by the simulated crosswind and slowly re-randomised by the local eddy speed.</li>
+        <li><b>Assumptions to check:</b> heater setting = heater outlet air temperature; heater blowers 1.2 m/s; fan 100 % = 7 m/s at the collimator; Taylor fan up to 5 m/s; room at 20 °C. Absolute C<sub>n</sub>² values are estimates. Use the calibration slider to match your measurements.</li>
+      </ul>
+    </div>
+  </section>
+  <footer>Geometry from the chamber diagram and photo (the CAD files were not used). Humidity inlet and outlet are not modelled.</footer>
+</div>
+<script>
+// Turbulence-chamber 2D flow model (top view, mid-height plane).
+// MAC grid, MacCormack advection, red-black SOR pressure projection.
+// Units: metres, seconds, m/s, degC.
+(function (global) {
+  'use strict';
+  const NIX = 160, NIY = 96;                // interior cells (1.0 m x 0.6 m)
+  const H = 1.0 / NIX, M = 5;               // M reservoir cells outside each wall
+  const X0 = -(M + 1) * H, Y0 = -(M + 1) * H;
+  const NX = NIX + 2 * M + 2, NY = NIY + 2 * M + 2;
+  const FLUID = 0, SOLID = 1, RES = 2;
+  const NU = NX + 1, NVY = NY + 1;
+  const T_AMB = 20;
+  const iL = M + 1, iR = M + NIX, jT = M + 1, jB = M + NIY;
+  // cells whose centres fall inside [a, b] (metres, interior coords)
+  const rx = (a, b) => [iL + Math.ceil(a / H - 0.5 - 1e-9), iL + Math.floor(b / H - 0.5 + 1e-9)];
+  const ry = (a, b) => [jT + Math.ceil(a / H - 0.5 - 1e-9), jT + Math.floor(b / H - 0.5 + 1e-9)];
+  const mir = i => iL + iR - i;
+  const fanX = rx(0.314, 0.355), fanY = ry(0.40, 0.54);
+  const heatX = rx(0.04, 0.16), heatY = ry(0.415, 0.525);
+  const portX = rx(0.475, 0.525), portY = ry(0.135, 0.185);
+  const ventY = ry(0.40, 0.54);
+  const G = {
+    iL, iR, jT, jB,
+    wallL: iL - 1, wallR: iR + 1, wallT: jT - 1, wallB: jB + 1,
+    partRow: ry(0.3455, 0.3455 + H)[0],
+    partLeftEnd: rx(0, 0.40)[1], partRightStart: mir(rx(0, 0.40)[1]),
+    fanL: { i0: fanX[0], i1: fanX[1] }, fanR: { i0: mir(fanX[1]), i1: mir(fanX[0]) },
+    fanJ0: fanY[0], fanJ1: fanY[1],
+    vpartL: rx(0.333, 0.333 + H)[0], vpartR: mir(rx(0.333, 0.333 + H)[0]),
+    heatL: { i0: heatX[0], i1: heatX[1] }, heatR: { i0: mir(heatX[1]), i1: mir(heatX[0]) },
+    heatJ0: heatY[0], heatJ1: heatY[1],
+    portX0: portX[0], portX1: portX[1], portY0: portY[0], portY1: portY[1],
+    ventJ0: ventY[0], ventJ1: ventY[1]
+  };
+  const cx = i => X0 + (i + 0.5) * H;
+  const cy = j => Y0 + (j + 0.5) * H;
+
+  function Sim() {
+    const N = NX * NY;
+    this.nx = NX; this.ny = NY; this.h = H; this.x0 = X0; this.y0 = Y0; this.G = G;
+    this.type = new Uint8Array(N);
+    this.u = new Float32Array(NU * NY); this.v = new Float32Array(NX * NVY);
+    this.uA = new Float32Array(NU * NY); this.vA = new Float32Array(NX * NVY);
+    this.uB = new Float32Array(NU * NY); this.vB = new Float32Array(NX * NVY);
+    this.uMode = new Uint8Array(NU * NY); // 0 zero, 1 free, 2 fixed
+    this.vMode = new Uint8Array(NX * NVY);
+    this.uFix = new Float32Array(NU * NY); this.vFix = new Float32Array(NX * NVY);
+    this.T = new Float32Array(N); this.TA = new Float32Array(N); this.TB = new Float32Array(N);
+    this.P = new Float32Array(N); this.div = new Float32Array(N);
+    this.nFree = new Uint8Array(N); this.faces = new Uint8Array(N);
+    this.heat = new Uint8Array(N); // 1 left heater duct, 2 right heater duct
+    this.Tm = new Float32Array(N); this.Tv = new Float32Array(N);
+    this.um = new Float32Array(N); this.vm = new Float32Array(N); this.kv = new Float32Array(N);
+    this.cn2 = new Float32Array(N); this.vort = new Float32Array(N); this.DT = new Float32Array(N);
+    this.fx = new Float32Array(N); this.fy = new Float32Array(N);
+    this.T.fill(T_AMB); this.Tm.fill(T_AMB);
+    this.time = 0;
+    this.params = {
+      fanL: 2.1, fanR: 2.1, heatL: 40, heatR: 100, taylor: 0, heaterFlow: 1.2,
+      config: 'short', ports: { top: 'open', bottom: 'open', left: 'open', right: 'open' },
+      conf: 0.05, stir: 1.0, calib: 1.0, leak: 0.5, drag: 4, lift: 2.5, cn2mode: 'sf', fanTI: 0.12
+    };
+    // fan turbulence: per source, spatial modes with Ornstein-Uhlenbeck amplitudes
+    this.noise = [];
+    for (let k = 0; k < 6; k++) {
+      const modes = [];
+      for (let m = 0; m < 6; m++) modes.push({ ph: Math.random() * 6.283, w: 0.5 + m * 0.9, a: gauss() });
+      this.noise.push({ modes, slow: 0 });
+    }
+    // coarse stirring stream-function grid (parameterised 3-D buoyant overturning)
+    this.sNX = 27; this.sNY = 17;
+    this.sPsi = new Float32Array(this.sNX * this.sNY);
+    this.sPsiT = new Float32Array(this.sNX * this.sNY);
+    this.build();
+  }
+
+  Sim.prototype.build = function () {
+    const p = this.params, t = this.type, g = G;
+    t.fill(FLUID);
+    const set = (i0, i1, j0, j1, val) => {
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) t[j * NX + i] = val;
+    };
+    // reservoir outside, walls
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      if (i < g.wallL || i > g.wallR || j < g.wallT || j > g.wallB) t[j * NX + i] = RES;
+    }
+    set(g.wallL, g.wallR, g.wallT, g.wallT, SOLID);
+    set(g.wallL, g.wallR, g.wallB, g.wallB, SOLID);
+    set(g.wallL, g.wallL, g.wallT, g.wallB, SOLID);
+    set(g.wallR, g.wallR, g.wallT, g.wallB, SOLID);
+    // horizontal partition with central gap
+    set(g.iL, g.partLeftEnd, g.partRow, g.partRow, SOLID);
+    set(g.partRightStart, g.iR, g.partRow, g.partRow, SOLID);
+    // vertical partitions + fan casings
+    for (const [vp, f] of [[g.vpartL, g.fanL], [g.vpartR, g.fanR]]) {
+      set(vp, vp, g.partRow + 1, g.fanJ0 - 2, SOLID);
+      set(vp, vp, g.fanJ1 + 2, g.jB, SOLID);
+      set(f.i0, f.i1, g.fanJ0 - 1, g.fanJ0 - 1, SOLID);
+      set(f.i0, f.i1, g.fanJ1 + 1, g.fanJ1 + 1, SOLID);
+    }
+    // heater casings (top/bottom shells)
+    for (const hh of [g.heatL, g.heatR]) {
+      set(hh.i0, hh.i1, g.heatJ0 - 1, g.heatJ0 - 1, SOLID);
+      set(hh.i0, hh.i1, g.heatJ1 + 1, g.heatJ1 + 1, SOLID);
+    }
+    // perforated vents on the end walls (behind the heaters)
+    for (let j = g.ventJ0; j <= g.ventJ1; j++) if (j % 2 === 0) {
+      t[j * NX + g.wallL] = FLUID; t[j * NX + g.wallR] = FLUID;
+    }
+    // ports
+    const ports = this.portState();
+    const flows = st => st === 'open' || st === 'beam' || st === 'fan';
+    if (flows(ports.top)) set(g.portX0, g.portX1, g.wallT, g.wallT, FLUID);
+    if (flows(ports.bottom)) set(g.portX0, g.portX1, g.wallB, g.wallB, FLUID);
+    if (flows(ports.left)) set(g.wallL, g.wallL, g.portY0, g.portY1, FLUID);
+    if (flows(ports.right)) set(g.wallR, g.wallR, g.portY0, g.portY1, FLUID);
+
+    // heater duct mask
+    this.heat.fill(0);
+    for (let j = g.heatJ0; j <= g.heatJ1; j++) {
+      for (let i = g.heatL.i0; i <= g.heatL.i1; i++) this.heat[j * NX + i] = 1;
+      for (let i = g.heatR.i0; i <= g.heatR.i1; i++) this.heat[j * NX + i] = 2;
+    }
+    this.ports = ports;
+    this.updateFaceModes();
+  };
+
+  // Effective state of each port: 'beam' | 'beamwin' | 'open' | 'window' | 'blocked' | 'fan'
+  // ('window' = sealed optical window: no air flow, light passes)
+  Sim.prototype.portState = function () {
+    const p = this.params, s = {};
+    const beam = p.config === 'short' ? ['top', 'bottom'] : ['left', 'right'];
+    for (const k of ['top', 'bottom', 'left', 'right']) {
+      const m = p.ports[k] === true ? 'open' : p.ports[k] === false ? 'blocked' : (p.ports[k] || 'open');
+      if (beam.includes(k)) s[k] = m === 'open' ? 'beam' : 'beamwin';
+      else s[k] = m;
+    }
+    if (p.config === 'long' && p.taylor > 0.01) s.bottom = 'fan';
+    return s;
+  };
+
+  Sim.prototype.updateFaceModes = function () {
+    const t = this.type, g = G, p = this.params;
+    const um = this.uMode, vm = this.vMode;
+    for (let j = 0; j < NY; j++) for (let i = 0; i <= NX; i++) {
+      const k = j * NU + i;
+      if (i === 0 || i === NX) { um[k] = 0; continue; }
+      const a = t[j * NX + i - 1], b = t[j * NX + i];
+      um[k] = (a === SOLID || b === SOLID || (a === RES && b === RES)) ? 0 : 1;
+    }
+    for (let j = 0; j <= NY; j++) for (let i = 0; i < NX; i++) {
+      const k = j * NX + i;
+      if (j === 0 || j === NY) { vm[k] = 0; continue; }
+      const a = t[(j - 1) * NX + i], b = t[j * NX + i];
+      vm[k] = (a === SOLID || b === SOLID || (a === RES && b === RES)) ? 0 : 1;
+    }
+    // fan ducts: fixed u, zero v inside (honeycomb collimator)
+    const fixDuct = (i0, i1, j0, j1) => {
+      for (let j = j0; j <= j1; j++) {
+        for (let i = i0; i <= i1 + 1; i++) um[j * NU + i] = 2;
+        for (let i = i0; i <= i1; i++) for (let jj = j0 + 1; jj <= j1; jj++) vm[jj * NX + i] = 0;
+      }
+    };
+    fixDuct(g.fanL.i0, g.fanL.i1, g.fanJ0, g.fanJ1);
+    fixDuct(g.fanR.i0, g.fanR.i1, g.fanJ0, g.fanJ1);
+    fixDuct(g.heatL.i0, g.heatL.i1, g.heatJ0, g.heatJ1);
+    fixDuct(g.heatR.i0, g.heatR.i1, g.heatJ0, g.heatJ1);
+    if (this.ports.bottom === 'fan') {
+      for (let i = g.portX0; i <= g.portX1; i++) {
+        vm[g.wallB * NX + i] = 2; vm[(g.wallB + 1) * NX + i] = 2;
+      }
+    }
+    // per-cell pressure stencil
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const c = j * NX + i;
+      if (t[c] !== FLUID) { this.nFree[c] = 0; this.faces[c] = 0; this.P[c] = 0; continue; }
+      let f = 0, n = 0;
+      if (um[j * NU + i] === 1) { f |= 1; n++; }
+      if (um[j * NU + i + 1] === 1) { f |= 2; n++; }
+      if (vm[j * NX + i] === 1) { f |= 4; n++; }
+      if (vm[(j + 1) * NX + i] === 1) { f |= 8; n++; }
+      this.faces[c] = f; this.nFree[c] = n;
+    }
+    this.applyFixed();
+  };
+
+  function gauss() {
+    let u = 0, v = 0; while (u === 0) u = Math.random(); v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185 * v);
+  }
+  Sim.prototype.noiseVal = function (k, s) {
+    const n = this.noise[k]; let v = 0;
+    for (let m = 0; m < n.modes.length; m++) { const md = n.modes[m]; v += md.a * Math.sin(md.w * s * 6.283 + md.ph); }
+    return v * 0.577 + n.slow;
+  };
+  Sim.prototype.evolveNoise = function (dt) {
+    const tau = 0.05, a = Math.exp(-dt / tau), b = Math.sqrt(1 - a * a);
+    const aS = Math.exp(-dt / 0.35), bS = Math.sqrt(1 - aS * aS);
+    for (const n of this.noise) {
+      for (const md of n.modes) { md.a = md.a * a + b * gauss(); md.ph += dt * 3 * md.w; }
+      n.slow = n.slow * aS + bS * 0.6 * gauss();
+    }
+  };
+
+  Sim.prototype.applyFixed = function () {
+    const g = G, p = this.params, u = this.u, v = this.v, um = this.uMode, vm = this.vMode;
+    const nrow = g.fanJ1 - g.fanJ0 + 1;
+    for (let j = g.fanJ0; j <= g.fanJ1; j++) {
+      const s = (j - g.fanJ0) / nrow;
+      const ti = p.fanTI === undefined ? 0.12 : p.fanTI;
+      const eL = 1 + ti * this.noiseVal(0, s), eR = 1 + ti * this.noiseVal(1, s);
+      const wL = 0.8 * ti * p.fanL * this.noiseVal(3, s), wR = 0.8 * ti * p.fanR * this.noiseVal(4, s);
+      // lateral velocity at the collimator exit faces
+      v[j * NX + g.fanL.i1 + 1] = wL; v[j * NX + g.fanR.i0 - 1] = wR;
+      for (let i = g.fanL.i0; i <= g.fanL.i1 + 1; i++) u[j * NU + i] = p.fanL * eL;
+      for (let i = g.fanR.i0; i <= g.fanR.i1 + 1; i++) u[j * NU + i] = -p.fanR * eR;
+      for (let i = g.heatL.i0; i <= g.heatL.i1 + 1; i++) if (j >= g.heatJ0 && j <= g.heatJ1) u[j * NU + i] = p.heaterFlow;
+      for (let i = g.heatR.i0; i <= g.heatR.i1 + 1; i++) if (j >= g.heatJ0 && j <= g.heatJ1) u[j * NU + i] = -p.heaterFlow;
+    }
+    if (this.ports.bottom === 'fan') {
+      const n = g.portX1 - g.portX0 + 1;
+      for (let i = g.portX0; i <= g.portX1; i++) {
+        const e = 1 + 0.12 * this.noiseVal(2, (i - g.portX0) / n);
+        v[g.wallB * NX + i] = -p.taylor * e; v[(g.wallB + 1) * NX + i] = -p.taylor * e;
+      }
+    }
+    for (let k = 0; k < um.length; k++) if (um[k] === 0) u[k] = 0;
+    for (let k = 0; k < vm.length; k++) if (vm[k] === 0) v[k] = 0;
+  };
+
+  // ---------- sampling ----------
+  let sMin = 0, sMax = 0;
+  function bil(f, w, hgt, fx, fy) {
+    if (fx < 0) fx = 0; else if (fx > w - 1.0001) fx = w - 1.0001;
+    if (fy < 0) fy = 0; else if (fy > hgt - 1.0001) fy = hgt - 1.0001;
+    const i = fx | 0, j = fy | 0;
+    const tx = fx - i, ty = fy - j, k = j * w + i;
+    const a = f[k], b = f[k + 1], c = f[k + w], d = f[k + w + 1];
+    return (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+  }
+  function bilMM(f, w, hgt, fx, fy) {
+    if (fx < 0) fx = 0; else if (fx > w - 1.0001) fx = w - 1.0001;
+    if (fy < 0) fy = 0; else if (fy > hgt - 1.0001) fy = hgt - 1.0001;
+    const i = fx | 0, j = fy | 0;
+    const tx = fx - i, ty = fy - j, k = j * w + i;
+    const a = f[k], b = f[k + 1], c = f[k + w], d = f[k + w + 1];
+    let mn = a, mx = a;
+    if (b < mn) mn = b; else if (b > mx) mx = b;
+    if (c < mn) mn = c; else if (c > mx) mx = c;
+    if (d < mn) mn = d; else if (d > mx) mx = d;
+    sMin = mn; sMax = mx;
+    return (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+  }
+  const IH = 1 / H;
+  function sU(u, x, y) { return bil(u, NU, NY, (x - X0) * IH, (y - Y0) * IH - 0.5); }
+  function sV(v, x, y) { return bil(v, NX, NVY, (x - X0) * IH - 0.5, (y - Y0) * IH); }
+  function sC(c, x, y) { return bil(c, NX, NY, (x - X0) * IH - 0.5, (y - Y0) * IH - 0.5); }
+  function sUm(u, x, y) { return bilMM(u, NU, NY, (x - X0) * IH, (y - Y0) * IH - 0.5); }
+  function sVm(v, x, y) { return bilMM(v, NX, NVY, (x - X0) * IH - 0.5, (y - Y0) * IH); }
+  function sCm(c, x, y) { return bilMM(c, NX, NY, (x - X0) * IH - 0.5, (y - Y0) * IH - 0.5); }
+  Sim.prototype.sampleU = function (x, y) { return sU(this.u, x, y); };
+  Sim.prototype.sampleV = function (x, y) { return sV(this.v, x, y); };
+  Sim.prototype.sampleT = function (x, y) { return sC(this.T, x, y); };
+
+  // ---------- advection (index-space, MacCormack with clamping) ----------
+  function advU(u, v, out, lo, hi, tmp, um, d) {
+    // pass 1: SL with RK2 backtrace; stores SL result in tmp, bounds in lo/hi
+    for (let j = 0; j < NY; j++) {
+      const r = j * NU;
+      for (let i = 1; i < NX; i++) {
+        const k = r + i;
+        if (um[k] !== 1) { tmp[k] = u[k]; continue; }
+        const u0 = u[k];
+        const v0 = 0.25 * (v[j * NX + i - 1] + v[j * NX + i] + v[(j + 1) * NX + i - 1] + v[(j + 1) * NX + i]);
+        const xm = i - 0.5 * d * u0, ym = j - 0.5 * d * v0;
+        const xs = i - d * bil(u, NU, NY, xm, ym), ys = j - d * bil(v, NX, NVY, xm - 0.5, ym + 0.5);
+        tmp[k] = bilMM(u, NU, NY, xs, ys); lo[k] = sMin; hi[k] = sMax;
+      }
+    }
+    for (let j = 0; j < NY; j++) {
+      const r = j * NU;
+      for (let i = 1; i < NX; i++) {
+        const k = r + i;
+        if (um[k] !== 1) { out[k] = u[k]; continue; }
+        const v0 = 0.25 * (v[j * NX + i - 1] + v[j * NX + i] + v[(j + 1) * NX + i - 1] + v[(j + 1) * NX + i]);
+        const back = bil(tmp, NU, NY, i + d * u[k], j + d * v0);
+        let val = tmp[k] + 0.5 * (u[k] - back);
+        if (val < lo[k] || val > hi[k]) val = tmp[k];
+        out[k] = val;
+      }
+    }
+  }
+  function advV(u, v, out, lo, hi, tmp, vm, d) {
+    for (let j = 1; j < NY; j++) {
+      const r = j * NX;
+      for (let i = 0; i < NX; i++) {
+        const k = r + i;
+        if (vm[k] !== 1) { tmp[k] = v[k]; continue; }
+        const v0 = v[k];
+        const u0 = 0.25 * (u[(j - 1) * NU + i] + u[(j - 1) * NU + i + 1] + u[j * NU + i] + u[j * NU + i + 1]);
+        const xm = i - 0.5 * d * u0, ym = j - 0.5 * d * v0;
+        const xs = i - d * bil(u, NU, NY, xm + 0.5, ym - 0.5), ys = j - d * bil(v, NX, NVY, xm, ym);
+        tmp[k] = bilMM(v, NX, NVY, xs, ys); lo[k] = sMin; hi[k] = sMax;
+      }
+    }
+    for (let j = 1; j < NY; j++) {
+      const r = j * NX;
+      for (let i = 0; i < NX; i++) {
+        const k = r + i;
+        if (vm[k] !== 1) { out[k] = v[k]; continue; }
+        const u0 = 0.25 * (u[(j - 1) * NU + i] + u[(j - 1) * NU + i + 1] + u[j * NU + i] + u[j * NU + i + 1]);
+        const back = bil(tmp, NX, NVY, i + d * u0, j + d * v[k]);
+        let val = tmp[k] + 0.5 * (v[k] - back);
+        if (val < lo[k] || val > hi[k]) val = tmp[k];
+        out[k] = val;
+      }
+    }
+  }
+  function advC(u, v, f, out, lo, hi, tmp, type, d) {
+    for (let j = 0; j < NY; j++) {
+      const r = j * NX;
+      for (let i = 0; i < NX; i++) {
+        const c = r + i;
+        if (type[c] !== FLUID) { tmp[c] = f[c]; continue; }
+        const u0 = 0.5 * (u[j * NU + i] + u[j * NU + i + 1]);
+        const v0 = 0.5 * (v[j * NX + i] + v[(j + 1) * NX + i]);
+        const xm = i - 0.5 * d * u0, ym = j - 0.5 * d * v0;
+        const xs = i - d * bil(u, NU, NY, xm + 0.5, ym), ys = j - d * bil(v, NX, NVY, xm, ym + 0.5);
+        tmp[c] = bilMM(f, NX, NY, xs, ys); lo[c] = sMin; hi[c] = sMax;
+      }
+    }
+    for (let j = 0; j < NY; j++) {
+      const r = j * NX;
+      for (let i = 0; i < NX; i++) {
+        const c = r + i;
+        if (type[c] !== FLUID) { out[c] = f[c]; continue; }
+        const u0 = 0.5 * (u[j * NU + i] + u[j * NU + i + 1]);
+        const v0 = 0.5 * (v[j * NX + i] + v[(j + 1) * NX + i]);
+        const back = bil(tmp, NX, NY, i + d * u0, j + d * v0);
+        let val = tmp[c] + 0.5 * (f[c] - back);
+        if (val < lo[c] || val > hi[c]) val = tmp[c];
+        out[c] = val;
+      }
+    }
+  }
+  Sim.prototype.advect = function (dt) {
+    const d = dt / H;
+    advU(this.u, this.v, this._uN, this.uB, this._uMax, this.uA, this.uMode, d);
+    advV(this.u, this.v, this._vN, this.vB, this._vMax, this.vA, this.vMode, d);
+    advC(this.u, this.v, this.T, this._TN, this.TB, this._TMax, this.TA, this.type, d);
+    this.u.set(this._uN); this.v.set(this._vN); this.T.set(this._TN);
+  };
+
+  // ---------- forces: vorticity confinement + parameterised buoyant stirring ----------
+  Sim.prototype.forces = function (dt) {
+    const u = this.u, v = this.v, t = this.type, w = this.vort, fx = this.fx, fy = this.fy;
+    const p = this.params;
+    for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX - 1; i++) {
+      const c = j * NX + i;
+      if (t[c] !== FLUID) { w[c] = 0; continue; }
+      const vr = 0.5 * (v[j * NX + i + 1] + v[(j + 1) * NX + i + 1]);
+      const vl = 0.5 * (v[j * NX + i - 1] + v[(j + 1) * NX + i - 1]);
+      const ub = 0.5 * (u[(j + 1) * NU + i] + u[(j + 1) * NU + i + 1]);
+      const ut = 0.5 * (u[(j - 1) * NU + i] + u[(j - 1) * NU + i + 1]);
+      w[c] = (vr - vl) / (2 * H) - (ub - ut) / (2 * H);
+    }
+    fx.fill(0); fy.fill(0);
+    const eps = p.conf;
+    const eU = eps * Math.max(0.5, p.fanL, p.fanR, p.taylor);
+    if (eps > 0) {
+      for (let j = 2; j < NY - 2; j++) for (let i = 2; i < NX - 2; i++) {
+        const c = j * NX + i;
+        if (t[c] !== FLUID) continue;
+        const gx = (Math.abs(w[c + 1]) - Math.abs(w[c - 1])) / (2 * H);
+        const gy = (Math.abs(w[c + NX]) - Math.abs(w[c - NX])) / (2 * H);
+        const gl = Math.sqrt(gx * gx + gy * gy) + 1e-6;
+        const nx = gx / gl, ny = gy / gl;
+        fx[c] = eU * (ny * w[c]);
+        fy[c] = eU * (-nx * w[c]);
+      }
+    }
+    // stirring: curl of a slowly evolving coarse stream function, weighted by
+    // the local buoyant velocity scale sqrt(g*beta*|dT|*Lb) where dT is the
+    // local contrast in the mean temperature field.
+    if (p.stir > 0) {
+      const sNX = this.sNX, sNY = this.sNY, psi = this.sPsi, psiT = this.sPsiT;
+      const tau = 0.08;
+      if (Math.random() < dt / tau * 3 || !this._psiInit) {
+        for (let k = 0; k < psiT.length; k++) psiT[k] = (Math.random() * 2 - 1);
+        this._psiInit = true;
+      }
+      const a = Math.min(1, dt / tau);
+      for (let k = 0; k < psi.length; k++) psi[k] += (psiT[k] - psi[k]) * a;
+      const Tm = this.Tm, g = 9.81, Lb = 0.04;
+      const sx = (sNX - 1) / NX, sy = (sNY - 1) / NY;
+      for (let j = 2; j < NY - 2; j++) for (let i = 2; i < NX - 2; i++) {
+        const c = j * NX + i;
+        if (t[c] !== FLUID) continue;
+        // local temperature contrast over ~2 cm
+        let tmin = Tm[c], tmax = Tm[c], val;
+        if (i > 4 && t[c - 4] !== SOLID) { val = Tm[c - 4]; if (val < tmin) tmin = val; else if (val > tmax) tmax = val; }
+        if (i < NX - 5 && t[c + 4] !== SOLID) { val = Tm[c + 4]; if (val < tmin) tmin = val; else if (val > tmax) tmax = val; }
+        if (j > 4 && t[c - 4 * NX] !== SOLID) { val = Tm[c - 4 * NX]; if (val < tmin) tmin = val; else if (val > tmax) tmax = val; }
+        if (j < NY - 5 && t[c + 4 * NX] !== SOLID) { val = Tm[c + 4 * NX]; if (val < tmin) tmin = val; else if (val > tmax) tmax = val; }
+        const dT = tmax - tmin;
+        if (dT < 0.5) continue;
+        const ub = Math.sqrt(g * dT / (273.15 + Tm[c]) * Lb);
+        // curl of psi (bilinear)
+        const X = i * sx, Y = j * sy;
+        const ii = Math.min(sNX - 2, Math.floor(X)), jj = Math.min(sNY - 2, Math.floor(Y));
+        const tx = X - ii, ty = Y - jj, k = jj * sNX + ii;
+        const dpsidx = ((psi[k + 1] - psi[k]) * (1 - ty) + (psi[k + sNX + 1] - psi[k + sNX]) * ty);
+        const dpsidy = ((psi[k + sNX] - psi[k]) * (1 - tx) + (psi[k + sNX + 1] - psi[k + 1]) * tx);
+        const s = p.stir * ub * 50; // 1/s  (ub / eddy time)
+        fx[c] += s * dpsidy;
+        fy[c] += -s * dpsidx;
+      }
+    }
+    const um = this.uMode, vm = this.vMode;
+    for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX; i++) {
+      const k = j * NU + i; if (um[k] !== 1) continue;
+      u[k] += dt * 0.5 * (fx[j * NX + i - 1] + fx[j * NX + i]);
+    }
+    for (let j = 1; j < NY; j++) for (let i = 1; i < NX - 1; i++) {
+      const k = j * NX + i; if (vm[k] !== 1) continue;
+      v[k] += dt * 0.5 * (fy[(j - 1) * NX + i] + fy[j * NX + i]);
+    }
+  };
+
+  // ---------- pressure projection ----------
+  Sim.prototype.project = function (iters, dt) {
+    const u = this.u, v = this.v, P = this.P, div = this.div, t = this.type;
+    const faces = this.faces, nF = this.nFree, h2 = H * H;
+    // out-of-plane leak: div(u) = -lambda * p  ->  extra diagonal term
+    const kap = h2 * (this.params.leak || 0) / dt;
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const c = j * NX + i;
+      if (t[c] !== FLUID) { div[c] = 0; continue; }
+      div[c] = (u[j * NU + i + 1] - u[j * NU + i] + v[(j + 1) * NX + i] - v[j * NX + i]) / H;
+    }
+    const w = 1.85;
+    for (let it = 0; it < iters; it++) {
+      for (let color = 0; color < 2; color++) {
+        for (let j = 1; j < NY - 1; j++) {
+          let i0 = 1 + ((j + color + 1) & 1);
+          for (let i = i0; i < NX - 1; i += 2) {
+            const c = j * NX + i, n = nF[c];
+            if (n === 0) continue;
+            const f = faces[c];
+            let s = 0;
+            if (f & 1) s += P[c - 1];
+            if (f & 2) s += P[c + 1];
+            if (f & 4) s += P[c - NX];
+            if (f & 8) s += P[c + NX];
+            const pn = (s - h2 * div[c]) / (n + kap);
+            P[c] += w * (pn - P[c]);
+          }
+        }
+      }
+    }
+    const um = this.uMode, vm = this.vMode;
+    for (let j = 0; j < NY; j++) for (let i = 1; i < NX; i++) {
+      const k = j * NU + i; if (um[k] !== 1) continue;
+      u[k] -= (P[j * NX + i] - P[j * NX + i - 1]) / H;
+    }
+    for (let j = 1; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const k = j * NX + i; if (vm[k] !== 1) continue;
+      v[k] -= (P[j * NX + i] - P[(j - 1) * NX + i]) / H;
+    }
+  };
+
+  // linear drag: momentum loss to floor/lid and 3-D dissipation of large 2-D eddies
+  // quadratic (speed-proportional) drag keeps the flow self-similar across fan speeds
+  Sim.prototype.drag = function (dt) {
+    const cd = this.params.drag || 0; if (cd <= 0) return;
+    const u = this.u, v = this.v, um = this.uMode, vm = this.vMode;
+    for (let j = 0; j < NY; j++) for (let i = 1; i < NX; i++) {
+      const k = j * NU + i; if (um[k] !== 1) continue;
+      const vv = 0.25 * (v[j * NX + i - 1] + v[j * NX + i] + v[(j + 1) * NX + i - 1] + v[(j + 1) * NX + i]);
+      const s = Math.sqrt(u[k] * u[k] + vv * vv);
+      u[k] /= (1 + cd * s * dt);
+    }
+    for (let j = 1; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const k = j * NX + i; if (vm[k] !== 1) continue;
+      const uu = 0.25 * (u[(j - 1) * NU + i] + u[(j - 1) * NU + i + 1] + u[j * NU + i] + u[j * NU + i + 1]);
+      const s = Math.sqrt(v[k] * v[k] + uu * uu);
+      v[k] /= (1 + cd * s * dt);
+    }
+  };
+
+  Sim.prototype.thermal = function (dt) {
+    const T = this.T, t = this.type, heat = this.heat, p = this.params;
+    const a = Math.min(1, dt / 0.012);
+    // Buoyant lift-off (3-D effect): air warmer/colder than the chamber bulk rises/sinks
+    // out of the beam plane at a rate ~ w_b / Hz, weighted by the local Richardson number.
+    if (p.lift > 0) {
+      let sum = 0, n = 0;
+      for (let j = G.jT; j <= G.jB; j += 2) for (let i = G.iL; i <= G.iR; i += 2) {
+        const c = j * NX + i; if (t[c] === FLUID && !heat[c]) { sum += T[c]; n++; }
+      }
+      const Tb = n ? sum / n : T_AMB; this.Tbulk = Tb;
+      const Hz = 0.155, g = 9.81, u = this.u, v = this.v;
+      for (let j = G.jT; j <= G.jB; j++) for (let i = G.iL; i <= G.iR; i++) {
+        const c = j * NX + i;
+        if (t[c] !== FLUID || heat[c]) continue;
+        const dT = T[c] - Tb; const adT = dT < 0 ? -dT : dT;
+        if (adT < 0.3) continue;
+        const uc = 0.5 * (u[j * NU + i] + u[j * NU + i + 1]);
+        const vc = 0.5 * (v[j * NX + i] + v[(j + 1) * NX + i]);
+        const U2 = uc * uc + vc * vc + this.kv[c] + 0.01;
+        const w2 = g * adT / (Tb + 273.15) * Hz;
+        const Ri = w2 / U2, f = Ri / (1 + Ri);
+        const rate = p.lift * f * Math.sqrt(w2) / Hz;
+        T[c] -= dT * (1 - Math.exp(-rate * dt));
+      }
+    }
+    for (let c = 0; c < T.length; c++) {
+      if (t[c] === RES) { T[c] = T_AMB; continue; }
+      if (heat[c] === 1) T[c] += (p.heatL - T[c]) * a;
+      else if (heat[c] === 2) T[c] += (p.heatR - T[c]) * a;
+    }
+    // air drawn into the beam plane by the out-of-plane leak arrives at room temperature
+    if (p.leak > 0) {
+      const u = this.u, v = this.v;
+      for (let j = G.jT; j <= G.jB; j++) for (let i = G.iL; i <= G.iR; i++) {
+        const c = j * NX + i;
+        if (t[c] !== FLUID || heat[c]) continue;
+        const d = (u[j * NU + i + 1] - u[j * NU + i] + v[(j + 1) * NX + i] - v[j * NX + i]) / H;
+        if (d > 0) T[c] += (T_AMB - T[c]) * (1 - Math.exp(-d * dt));
+      }
+    }
+    // extrapolate into solids so interpolation near walls is adiabatic
+    for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX - 1; i++) {
+      const c = j * NX + i;
+      if (t[c] !== SOLID) continue;
+      let s = 0, n = 0;
+      if (t[c - 1] !== SOLID) { s += T[c - 1]; n++; }
+      if (t[c + 1] !== SOLID) { s += T[c + 1]; n++; }
+      if (t[c - NX] !== SOLID) { s += T[c - NX]; n++; }
+      if (t[c + NX] !== SOLID) { s += T[c + NX]; n++; }
+      if (n) T[c] = s / n;
+    }
+  };
+
+  // running statistics + optical-turbulence field
+  Sim.prototype.stats = function (dt) {
+    const T = this.T, t = this.type, u = this.u, v = this.v;
+    const Tm = this.Tm, Tv = this.Tv, umn = this.um, vmn = this.vm, kv = this.kv, DT = this.DT;
+    const a = Math.min(1, dt / 0.15);
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const c = j * NX + i;
+      if (t[c] !== FLUID) { Tm[c] = T[c]; Tv[c] = 0; kv[c] = 0; DT[c] = 0; continue; }
+      const uc = 0.5 * (u[j * NU + i] + u[j * NU + i + 1]);
+      const vc = 0.5 * (v[j * NX + i] + v[(j + 1) * NX + i]);
+      const dT = T[c] - Tm[c];
+      Tm[c] += a * dT; Tv[c] += a * (dT * dT - Tv[c]);
+      // temperature structure function at r = 2 cells (x and y), time-averaged
+      if (i > 1 && i < NX - 2 && j > 1 && j < NY - 2) {
+        let s = 0, m = 0;
+        if (t[c + 2] === FLUID) { const d = T[c + 2] - T[c]; s += d * d; m++; }
+        if (t[c - 2] === FLUID) { const d = T[c - 2] - T[c]; s += d * d; m++; }
+        if (t[c + 2 * NX] === FLUID) { const d = T[c + 2 * NX] - T[c]; s += d * d; m++; }
+        if (t[c - 2 * NX] === FLUID) { const d = T[c - 2 * NX] - T[c]; s += d * d; m++; }
+        if (m) DT[c] += a * (s / m - DT[c]);
+      }
+      const du = uc - umn[c], dv = vc - vmn[c];
+      umn[c] += a * du; vmn[c] += a * dv;
+      kv[c] += a * (du * du + dv * dv - kv[c]);
+    }
+  };
+
+  Sim.prototype.computeCn2 = function () {
+    const t = this.type, Tm = this.Tm, Tv = this.Tv, kv = this.kv, cn2 = this.cn2, p = this.params;
+    const l0 = 0.02, qref2 = 0.25 * 0.25, LT23 = Math.pow(0.03, 2 / 3), P = 888, R23 = Math.pow(2 * H, 2 / 3);
+    for (let j = 1; j < NY - 1; j++) for (let i = 1; i < NX - 1; i++) {
+      const c = j * NX + i;
+      if (t[c] !== FLUID) { cn2[c] = 0; continue; }
+      const tl = t[c - 1] === SOLID ? Tm[c] : Tm[c - 1], tr = t[c + 1] === SOLID ? Tm[c] : Tm[c + 1];
+      const tu = t[c - NX] === SOLID ? Tm[c] : Tm[c - NX], td = t[c + NX] === SOLID ? Tm[c] : Tm[c + NX];
+      const gx = (tr - tl) / (2 * H), gy = (td - tu) / (2 * H);
+      const q2 = kv[c];
+      const lm = l0 * q2 / (q2 + qref2);
+      const Tk = Tm[c] + 273.15;
+      const M = 79e-6 * P / (Tk * Tk);
+      if (p.cn2mode === 'sf') {
+        cn2[c] = p.calib * M * M * this.DT[c] / R23;
+      } else {
+        const s2 = Tv[c] + lm * lm * (gx * gx + gy * gy);
+        cn2[c] = p.calib * M * M * 2 * s2 / LT23;
+      }
+    }
+  };
+
+  Sim.prototype.step = function (dt) {
+    this.applyFixed();
+    this.advect(dt);
+    this.applyFixed();
+    this.forces(dt);
+    this.project(this.iters || 30, dt);
+    this.drag(dt);
+    this.thermal(dt);
+    this.stats(dt);
+    this.evolveNoise(dt);
+    this.time += dt;
+  };
+
+  Sim.prototype.maxSpeed = function () {
+    const p = this.params;
+    return Math.max(0.3, p.fanL, p.fanR, p.taylor, p.heaterFlow) * 1.4;
+  };
+
+  // integrate optical quantities along the active beam path
+  Sim.prototype.pathStats = function (D) {
+    const p = this.params, g = G, cn2 = this.cn2;
+    const lam = 795e-9, k = 2 * Math.PI / lam;
+    const out = { profile: [], L: 0 };
+    let I = 0, Iw = 0, V = 0, Q = 0, Tsum = 0, n = 0;
+    const halfW = Math.max(D / 2, H * 0.51);
+    if (p.config === 'short') {
+      const L = 0.6; out.L = L;
+      const cols = [];
+      for (let i = g.iL; i <= g.iR; i++) if (Math.abs(cx(i) - 0.5) <= halfW) cols.push(i);
+      for (let j = g.jT; j <= g.jB; j++) {
+        let s = 0, vp = 0, q = 0, tt = 0;
+        for (const i of cols) {
+          const c = j * NX + i; s += cn2[c]; vp += this.um[c]; q += this.kv[c]; tt += this.T[c];
+        }
+        s /= cols.length; vp /= cols.length; q /= cols.length; tt /= cols.length;
+        const z = 0.6 - cy(j); // distance from laser (bottom)
+        out.profile.push({ z, cn2: s, T: tt });
+        I += s * H; Iw += s * Math.pow(Math.max(L - z, 0), 5 / 6) * H;
+        V += s * vp * H; Q += s * q * H; Tsum += tt; n++;
+      }
+    } else {
+      const L = 1.0; out.L = L;
+      const rows = [];
+      for (let j = g.jT; j <= g.jB; j++) if (Math.abs(cy(j) - 0.1625) <= halfW) rows.push(j);
+      for (let i = g.iL; i <= g.iR; i++) {
+        let s = 0, vp = 0, q = 0, tt = 0;
+        for (const j of rows) {
+          const c = j * NX + i; s += cn2[c]; vp += this.vm[c]; q += this.kv[c]; tt += this.T[c];
+        }
+        s /= rows.length; vp /= rows.length; q /= rows.length; tt /= rows.length;
+        const z = cx(i);
+        out.profile.push({ z, cn2: s, T: tt });
+        I += s * H; Iw += s * Math.pow(Math.max(L - z, 0), 5 / 6) * H;
+        V += s * vp * H; Q += s * q * H; Tsum += tt; n++;
+      }
+    }
+    out.intCn2 = I;
+    out.cn2avg = I / out.L;
+    out.r0 = I > 0 ? Math.pow(0.423 * k * k * I, -3 / 5) : Infinity;
+    out.rytov = 2.25 * Math.pow(k, 7 / 6) * Iw;
+    out.vperp = I > 0 ? V / I : 0;
+    out.uprime = I > 0 ? Math.sqrt(Q / I) : 0;
+    out.Tpath = Tsum / n;
+    return out;
+  };
+
+  Sim.prototype.jetTemps = function () {
+    const g = G; let a = 0, b = 0, n = 0;
+    for (let j = g.fanJ0; j <= g.fanJ1; j++) {
+      a += this.T[j * NX + g.fanL.i1]; b += this.T[j * NX + g.fanR.i0]; n++;
+    }
+    return { L: a / n, R: b / n };
+  };
+
+  Sim.prototype.reset = function () {
+    this.u.fill(0); this.v.fill(0); this.T.fill(T_AMB); this.P.fill(0);
+    this.Tm.fill(T_AMB); this.Tv.fill(0); this.um.fill(0); this.vm.fill(0); this.kv.fill(0); this.DT.fill(0);
+    this.time = 0;
+    this.applyFixed();
+  };
+
+  // lazily-created scratch arrays
+  const proto = Sim.prototype;
+  const origBuild = proto.build;
+  proto.build = function () {
+    if (!this._uN) {
+      this._uN = new Float32Array(NU * NY); this._vN = new Float32Array(NX * NVY);
+      this._uMax = new Float32Array(NU * NY); this._vMax = new Float32Array(NX * NVY);
+      this._TN = new Float32Array(NX * NY); this._TMax = new Float32Array(NX * NY);
+    }
+    origBuild.call(this);
+  };
+
+  const api = { Sim, FLUID, SOLID, RES, T_AMB, H, X0, Y0, NX, NY, G, cx, cy };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else global.ChamberSim = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// Receiver optics: von Karman phase screens (frozen flow + boiling), aperture sampling,
+// wavefront (Shack-Hartmann style) and focal-plane PSF via FFT.
+(function (global) {
+  'use strict';
+  function fft1(re, im, n, off, stride) {
+    // in-place iterative radix-2 on a strided line
+    for (let i = 1, j = 0; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) {
+        const a = off + i * stride, b = off + j * stride;
+        let t = re[a]; re[a] = re[b]; re[b] = t;
+        t = im[a]; im[a] = im[b]; im[b] = t;
+      }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+      for (let i = 0; i < n; i += len) {
+        let cr = 1, ci = 0;
+        for (let k = 0; k < len / 2; k++) {
+          const a = off + (i + k) * stride, b = off + (i + k + len / 2) * stride;
+          const xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr;
+          re[b] = re[a] - xr; im[b] = im[a] - xi;
+          re[a] += xr; im[a] += xi;
+          const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+        }
+      }
+    }
+  }
+  function fft2(re, im, n) {
+    for (let r = 0; r < n; r++) fft1(re, im, n, r * n, 1);
+    for (let c = 0; c < n; c++) fft1(re, im, n, c, n);
+  }
+  function gauss() {
+    let u = 0; while (u === 0) u = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+  }
+
+  const LAMBDA = 795e-9;
+  function Optics(opts) {
+    opts = opts || {};
+    this.N = opts.N || 512; this.dx = opts.dx || 0.0003;
+    this.L0 = opts.L0 || 0.08; this.l0 = opts.l0 || 0.001;
+    this.NA = 64; this.NP = 128; this.CROP = 64;
+    this.ox = 0; this.oy = 0; this.theta = Math.random() * 6.28;
+    this.re = new Float64Array(this.NP * this.NP); this.im = new Float64Array(this.NP * this.NP);
+    this.phase = new Float32Array(this.NA * this.NA); this.amp = new Float32Array(this.NA * this.NA);
+    this.psf = new Float32Array(this.CROP * this.CROP); this.psfLong = new Float32Array(this.CROP * this.CROP);
+    this.trail = [];
+    this.makeScreens();
+  }
+  // Schmidt-style FFT screen for r0 = 1 m; real and imaginary parts give two independent screens.
+  Optics.prototype.makeScreens = function () {
+    const N = this.N, dx = this.dx, df = 1 / (N * dx);
+    const fm = 5.92 / this.l0 / (2 * Math.PI), f0 = 1 / this.L0;
+    const re = new Float64Array(N * N), im = new Float64Array(N * N);
+    for (let q = 0; q < N; q++) {
+      const fy = (q < N / 2 ? q : q - N) * df;
+      for (let p = 0; p < N; p++) {
+        const fx = (p < N / 2 ? p : p - N) * df;
+        const f2 = fx * fx + fy * fy;
+        if (p === 0 && q === 0) continue;
+        const psd = 0.023 * Math.exp(-f2 / (fm * fm)) / Math.pow(f2 + f0 * f0, 11 / 6);
+        const a = Math.sqrt(psd) * df;
+        re[q * N + p] = gauss() * a; im[q * N + p] = gauss() * a;
+      }
+    }
+    fft2(re, im, N);
+    this.s1 = new Float32Array(N * N); this.s2 = new Float32Array(N * N);
+    for (let k = 0; k < N * N; k++) { this.s1[k] = re[k]; this.s2[k] = im[k]; }
+  };
+  Optics.prototype.sample = function (s, x, y) {
+    const N = this.N;
+    let fx = x / this.dx, fy = y / this.dx;
+    fx -= Math.floor(fx / N) * N; fy -= Math.floor(fy / N) * N;
+    const i = fx | 0, j = fy | 0, tx = fx - i, ty = fy - j;
+    const i1 = (i + 1) % N, j1 = (j + 1) % N;
+    const a = s[j * N + i], b = s[j * N + i1], c = s[j1 * N + i], d = s[j1 * N + i1];
+    return (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+  };
+  // frozen-flow translation + boiling (rotation between two independent screens)
+  Optics.prototype.advance = function (dt, vperp, tBoil) {
+    this.ox += vperp * dt;
+    this.theta += dt * 2 * Math.PI / Math.max(0.02, tBoil);
+  };
+  Optics.prototype.compute = function (D, r0, removeTilt, longExp) {
+    const NA = this.NA, NP = this.NP, CR = this.CROP;
+    const W = 1.5 * D, dxa = W / NA, w = D / 2, R = 0.025;
+    // 1.1: compensates the low-frequency deficit of FFT screens (checked against D(r) = 6.88 (r/r0)^(5/3))
+    const scl = isFinite(r0) && r0 > 0 ? 1.1 * Math.pow(r0, -5 / 6) : 0;
+    const c = Math.cos(this.theta), s = Math.sin(this.theta);
+    const ph = this.phase, amp = this.amp;
+    let sw = 0, sp = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxp = 0, syp = 0, sa = 0;
+    for (let m = 0; m < NA; m++) {
+      const y = (m - NA / 2 + 0.5) * dxa;
+      for (let n = 0; n < NA; n++) {
+        const x = (n - NA / 2 + 0.5) * dxa, k = m * NA + n;
+        const r2 = x * x + y * y;
+        const a = r2 <= R * R ? Math.exp(-r2 / (w * w)) : 0;
+        amp[k] = a; sa += a;
+        const p = scl * (c * this.sample(this.s1, this.ox + x, this.oy + y) + s * this.sample(this.s2, this.ox + x + 0.031, this.oy + y + 0.047));
+        ph[k] = p;
+        const wt = a * a;
+        sw += wt; sp += wt * p; sx += wt * x; sy += wt * y; sxx += wt * x * x; syy += wt * y * y;
+        sxp += wt * x * p; syp += wt * y * p;
+      }
+    }
+    const pm = sp / sw, xm = sx / sw, ym = sy / sw;
+    const gx = (sxp / sw - xm * pm) / (sxx / sw - xm * xm), gy = (syp / sw - ym * pm) / (syy / sw - ym * ym);
+    this.tilt = { x: gx / (2 * Math.PI / LAMBDA), y: gy / (2 * Math.PI / LAMBDA) }; // rad
+    let v = 0, vw = 0;
+    for (let m = 0; m < NA; m++) {
+      const y = (m - NA / 2 + 0.5) * dxa;
+      for (let n = 0; n < NA; n++) {
+        const x = (n - NA / 2 + 0.5) * dxa, k = m * NA + n;
+        let p = ph[k] - pm;
+        if (removeTilt) p -= gx * (x - xm) + gy * (y - ym);
+        ph[k] = p;
+        const wt = amp[k] * amp[k];
+        v += wt * p * p; vw += wt;
+      }
+    }
+    this.rmsWaves = Math.sqrt(v / vw) / (2 * Math.PI);
+    // focal plane
+    const re = this.re, im = this.im; re.fill(0); im.fill(0);
+    const o = (NP - NA) / 2;
+    for (let m = 0; m < NA; m++) for (let n = 0; n < NA; n++) {
+      const k = m * NA + n, a = amp[k];
+      if (a === 0) continue;
+      re[(m + o) * NP + n + o] = a * Math.cos(ph[k]); im[(m + o) * NP + n + o] = a * Math.sin(ph[k]);
+    }
+    fft2(re, im, NP);
+    const peakDL = sa * sa;
+    let pk = 0, cxs = 0, cys = 0, tot = 0;
+    const psf = this.psf, h = CR / 2;
+    for (let m = 0; m < CR; m++) {
+      const qm = (m - h + NP) % NP;
+      for (let n = 0; n < CR; n++) {
+        const qn = (n - h + NP) % NP, k = qm * NP + qn;
+        const I = (re[k] * re[k] + im[k] * im[k]) / peakDL;
+        psf[m * CR + n] = I;
+        if (I > pk) pk = I;
+        tot += I; cxs += I * (n - h); cys += I * (m - h);
+      }
+    }
+    this.strehl = pk;
+    this.centroid = { x: cxs / tot, y: cys / tot }; // crop pixels; lambda/D = 3 px
+    const a = longExp ? 0.04 : 1;
+    for (let k = 0; k < psf.length; k++) this.psfLong[k] += (psf[k] - this.psfLong[k]) * 0.04;
+    this.trail.push(this.centroid); if (this.trail.length > 40) this.trail.shift();
+    return this;
+  };
+  Optics.LAMBDA = LAMBDA;
+  Optics.fft2 = fft2;
+  if (typeof module !== 'undefined' && module.exports) module.exports = Optics;
+  else global.ChamberOptics = Optics;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  const S = window.ChamberSim, Optics = window.ChamberOptics;
+  const { NX, NY, H, X0, Y0, G, FLUID, SOLID, RES, T_AMB } = S;
+  const NU = NX + 1;
+  const sim = new S.Sim(); sim.iters = 30;
+  const optics = new Optics();
+  const LAMBDA = 795e-9;
+  const FAN_MAX = 7, TAYLOR_MAX = 5;
+  const SPEEDS = [1 / 400, 1 / 200, 1 / 100, 1 / 40, 1 / 20, 1 / 10, 1 / 5];
+  const SPEED_LABEL = ['1/400', '1/200', '1/100', '1/40', '1/20', '1/10', '1/5'];
+  const $ = id => document.getElementById(id);
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const st = {
+    overlay: 'temp', streaks: true, paused: false, speedIdx: 4,
+    D: 0.010, rmTilt: false, longExp: false, link: true,
+    prefs: { short: { top: 'open', bottom: 'open', left: 'open', right: 'open' }, long: { top: 'open', bottom: 'open', left: 'open', right: 'open' } },
+    warm: true, warmUntil: 0.8, skipUntil: -1,
+    intCn2: 0, r0: Infinity, jet: { L: T_AMB, R: T_AMB }, tHi: 40,
+    hist: [], profile: null, stats: null, frame: 0, hover: null
+  };
+
+  // ---------- colour maps ----------
+  function hex(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  function lut(stops) {
+    const out = new Uint8ClampedArray(256 * 3);
+    const cs = stops.map(s => [s[0], hex(s[1])]);
+    for (let i = 0; i < 256; i++) {
+      const t = i / 255;
+      let k = 0; while (k < cs.length - 2 && t > cs[k + 1][0]) k++;
+      const [t0, c0] = cs[k], [t1, c1] = cs[k + 1];
+      const f = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+      for (let c = 0; c < 3; c++) out[i * 3 + c] = c0[c] + (c1[c] - c0[c]) * f;
+    }
+    return out;
+  }
+  const LUT = {
+    temp: lut([[0, '#173a6b'], [0.28, '#2f7fc4'], [0.5, '#8f97a8'], [0.76, '#ea733a'], [1, '#ffc27a']]),
+    speed: lut([[0, '#0b1920'], [0.45, '#1f8a96'], [1, '#e2fcff']]),
+    vort: lut([[0, '#3b8fe0'], [0.5, '#1c252d'], [1, '#f08a3c']]),
+    cn2: lut([[0, '#120c1c'], [0.45, '#8a2f86'], [0.75, '#e0609c'], [1, '#ffe3f0']]),
+    phase: lut([[0, '#2f7fd8'], [0.5, '#262e36'], [1, '#f08a3c']]),
+    psf: lut([[0, '#060c11'], [0.35, '#5a1c3a'], [0.7, '#e8457a'], [1, '#fff0f5']])
+  };
+
+  // ---------- config / ports ----------
+  function applyConfig(cfg) {
+    sim.params.config = cfg;
+    sim.params.ports = Object.assign({}, st.prefs[cfg]);
+    sim.build();
+    buildWallPath();
+    optics.trail.length = 0;
+    st.hist.length = 0;
+    updateUI();
+  }
+  function togglePort(k) {
+    const cfg = sim.params.config, ps = sim.portState();
+    if (ps[k] === 'fan') return;
+    const cur = st.prefs[cfg][k];
+    // beam openings: open <-> window; others: open -> window -> blocked -> open
+    st.prefs[cfg][k] = (ps[k] === 'beam' || ps[k] === 'beamwin') ? (cur === 'open' ? 'window' : 'open')
+      : cur === 'open' ? 'window' : cur === 'window' ? 'blocked' : 'open';
+    applyConfig(cfg);
+  }
+
+  // ---------- chamber canvas ----------
+  const cv = $('chamber'), ctx = cv.getContext('2d');
+  const WX0 = -0.135, WX1 = 1.135, WY0 = -0.14, WY1 = 0.725;
+  let sc = 600, dpr = 1, cssW = 800, cssH = 560;
+  const off = document.createElement('canvas'); off.width = NX; off.height = NY;
+  const offCtx = off.getContext('2d'); const img = offCtx.createImageData(NX, NY);
+  const sx = x => (x - WX0) * sc, sy = y => (y - WY0) * sc;
+  const cellX = i => (i - G.iL) * H, cellY = j => (j - G.jT) * H;
+  let wallPath = null;
+
+  function resize() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    cssW = cv.clientWidth || 800; cssH = cssW * (WY1 - WY0) / (WX1 - WX0);
+    cv.style.height = cssH + 'px';
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+    sc = cssW / (WX1 - WX0);
+    fscale = Math.max(0.78, Math.min(1.1, cssW / 860)); compact = cssW < 600;
+    buildWallPath();
+    for (const c of ['prof', 'hist', 'wfs', 'psf']) sizeCanvas($(c));
+  }
+  function sizeCanvas(c) {
+    const w = c.clientWidth || 300, h = c.clientHeight || 150;
+    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  }
+  function buildWallPath() {
+    const p = new Path2D(), t = sim.type;
+    for (let j = 0; j < NY; j++) {
+      let i = 0;
+      while (i < NX) {
+        if (t[j * NX + i] !== SOLID) { i++; continue; }
+        let e = i; while (e + 1 < NX && t[j * NX + e + 1] === SOLID) e++;
+        p.rect(sx(cellX(i)), sy(cellY(j)), (e - i + 1) * H * sc + 0.5, H * sc + 0.5);
+        i = e + 1;
+      }
+    }
+    wallPath = p;
+  }
+
+  function fillField() {
+    const d = img.data, t = sim.type, ov = st.overlay;
+    const L = LUT[ov];
+    const tLo = T_AMB, tHi = st.tHi;
+    const uMax = 1.25 * Math.max(0.5, sim.params.fanL, sim.params.fanR, sim.params.taylor);
+    const wRef = uMax / 0.014;
+    const u = sim.u, v = sim.v;
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) {
+      const c = j * NX + i, o = c * 4;
+      if (t[c] === RES) { d[o + 3] = 0; continue; }
+      let x;
+      if (ov === 'temp') x = (sim.T[c] - tLo) / (tHi - tLo);
+      else if (ov === 'speed') {
+        const uc = 0.5 * (u[j * NU + i] + u[j * NU + i + 1]), vc = 0.5 * (v[j * NX + i] + v[(j + 1) * NX + i]);
+        x = Math.sqrt(uc * uc + vc * vc) / uMax;
+      } else if (ov === 'vort') {
+        const wv = sim.vort;
+        const sm = (i > 0 && i < NX - 1 && j > 0 && j < NY - 1)
+          ? (4 * wv[c] + wv[c - 1] + wv[c + 1] + wv[c - NX] + wv[c + NX]) / 8 : wv[c];
+        x = 0.5 + 0.5 * sm / wRef;
+      }
+      else { const q = sim.cn2[c]; x = q > 0 ? (Math.log10(q) + 12) / 4 : 0; }
+      const k = Math.max(0, Math.min(255, (x * 255) | 0)) * 3;
+      d[o] = L[k]; d[o + 1] = L[k + 1]; d[o + 2] = L[k + 2]; d[o + 3] = 255;
+    }
+    offCtx.putImageData(img, 0, 0);
+  }
+
+  // ---------- tracers ----------
+  const NP = 2200;
+  const px = new Float32Array(NP), py = new Float32Array(NP), life = new Float32Array(NP);
+  function spawn(k, anywhere) {
+    const p = sim.params, r = Math.random();
+    for (let tries = 0; tries < 30; tries++) {
+      let x, y;
+      if (!anywhere && r < 0.28) {
+        // at a source: collimator exits, heater outlets, vents, Taylor fan
+        const s = Math.random();
+        if (s < 0.3) { x = cellX(G.fanL.i1 + 1) + Math.random() * 0.01; y = cellY(G.fanJ0) + Math.random() * (G.fanJ1 - G.fanJ0 + 1) * H; }
+        else if (s < 0.6) { x = cellX(G.fanR.i0) - Math.random() * 0.01; y = cellY(G.fanJ0) + Math.random() * (G.fanJ1 - G.fanJ0 + 1) * H; }
+        else if (s < 0.8 && sim.ports.bottom === 'fan') { x = 0.475 + Math.random() * 0.05; y = 0.595 - Math.random() * 0.01; }
+        else { x = Math.random() < 0.5 ? 0.004 + Math.random() * 0.02 : 0.976 + Math.random() * 0.02; y = 0.40 + Math.random() * 0.14; }
+      } else { x = Math.random(); y = Math.random() * 0.6; }
+      const i = Math.floor((x - X0) / H), j = Math.floor((y - Y0) / H);
+      if (i < 0 || j < 0 || i >= NX || j >= NY || sim.type[j * NX + i] !== FLUID || sim.heat[j * NX + i]) continue;
+      px[k] = x; py[k] = y; life[k] = 0.25 + Math.random() * 0.6; return;
+    }
+    px[k] = 0.5; py[k] = 0.2; life[k] = 0.1;
+  }
+  for (let k = 0; k < NP; k++) spawn(k, true);
+  function moveTracers(dt) {
+    for (let k = 0; k < NP; k++) {
+      let x = px[k], y = py[k];
+      const u0 = sim.sampleU(x, y), v0 = sim.sampleV(x, y);
+      const xm = x + 0.5 * dt * u0, ym = y + 0.5 * dt * v0;
+      x += dt * sim.sampleU(xm, ym); y += dt * sim.sampleV(xm, ym);
+      life[k] -= dt;
+      const i = Math.floor((x - X0) / H), j = Math.floor((y - Y0) / H);
+      if (life[k] <= 0 || x < 0 || x > 1 || y < 0 || y > 0.6 || sim.type[j * NX + i] !== FLUID) { spawn(k, false); continue; }
+      px[k] = x; py[k] = y;
+    }
+  }
+
+  // ---------- drawing ----------
+  const BEAM = '#e8457a';
+  function font(sz, w) { return `${w || 500} ${sz}px "IBM Plex Sans Condensed", "Arial Narrow", sans-serif`; }
+  let fscale = 1, compact = false;
+  function label(txt, x, y, align, color, sz, rot) {
+    ctx.save(); ctx.font = font(Math.max(8, (sz || 11) * fscale)); ctx.fillStyle = color || '#92a2af';
+    ctx.textAlign = align || 'center'; ctx.textBaseline = 'middle';
+    ctx.strokeStyle = 'rgba(10,15,20,0.8)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+    if (rot) { ctx.translate(sx(x), sy(y)); ctx.rotate(rot); ctx.strokeText(txt, 0, 0); ctx.fillText(txt, 0, 0); }
+    else { ctx.strokeText(txt, sx(x), sy(y)); ctx.fillText(txt, sx(x), sy(y)); }
+    ctx.restore();
+  }
+  function beamGeom() {
+    const p = sim.params;
+    if (p.config === 'short') return { vertical: true, c: 0.5, a: 0.705, b: -0.035, in0: 0.6, in1: 0 };
+    return { vertical: false, c: 0.1625, a: -0.035, b: 1.035, in0: 0, in1: 1 };
+  }
+  function drawBeam() {
+    const g = beamGeom(), wpx = Math.max(1.5, st.D * sc);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const rect = (s0, s1, width, color) => {
+      ctx.fillStyle = color;
+      if (g.vertical) ctx.fillRect(sx(g.c) - width / 2, sy(Math.min(s0, s1)), width, Math.abs(sy(s1) - sy(s0)));
+      else ctx.fillRect(sx(Math.min(s0, s1)), sy(g.c) - width / 2, Math.abs(sx(s1) - sx(s0)), width);
+    };
+    rect(g.a, g.b, wpx + 10, 'rgba(232,69,122,0.10)');
+    rect(g.a, g.b, wpx + 4, 'rgba(232,69,122,0.22)');
+    rect(g.a, g.b, wpx, 'rgba(232,69,122,0.55)');
+    // shimmer where the optical turbulence is strong
+    const prof = st.stats && st.stats.profile;
+    if (prof) {
+      const tt = sim.time * 60;
+      for (let n = 0; n < prof.length; n++) {
+        const q = prof[n].cn2; if (!(q > 0)) continue;
+        const lv = Math.max(0, Math.min(1, (Math.log10(q) + 11) / 3));
+        if (lv < 0.05) continue;
+        const a = lv * (0.22 + 0.22 * Math.sin(n * 1.7 + tt + Math.sin(n * 0.37 + tt * 0.6) * 3));
+        const s = g.vertical ? 0.6 - prof[n].z : prof[n].z;
+        rect(s - H / 2, s + H / 2, wpx + 6 + lv * 8, `rgba(255,170,200,${Math.max(0, a).toFixed(3)})`);
+      }
+    }
+    ctx.restore();
+  }
+  function box(x0, y0, x1, y1, fill, stroke) {
+    ctx.fillStyle = fill; ctx.fillRect(sx(x0), sy(y0), (x1 - x0) * sc, (y1 - y0) * sc);
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.strokeRect(sx(x0) + 0.5, sy(y0) + 0.5, (x1 - x0) * sc - 1, (y1 - y0) * sc - 1); }
+  }
+  function drawFan(f, dir, speed) {
+    const x0 = cellX(f.i0), x1 = cellX(f.i1 + 1), y0 = cellY(G.fanJ0), y1 = cellY(G.fanJ1 + 1);
+    box(x0, y0, x1, y1, 'rgba(10,16,21,0.78)', 'rgba(205,226,238,0.9)');
+    ctx.save();
+    ctx.beginPath(); ctx.rect(sx(x0), sy(y0), (x1 - x0) * sc, (y1 - y0) * sc); ctx.clip();
+    ctx.strokeStyle = 'rgba(205,226,238,0.22)'; ctx.lineWidth = 1;
+    for (let y = y0 + 0.006; y < y1; y += 0.008) { ctx.beginPath(); ctx.moveTo(sx(x0), sy(y)); ctx.lineTo(sx(x1), sy(y)); ctx.stroke(); }
+    // chevrons moving with the (slow-motion) air
+    const sp = 0.02, ph = ((sim.time * speed) % sp + sp) % sp;
+    ctx.strokeStyle = speed > 0.05 ? 'rgba(134,199,214,0.9)' : 'rgba(134,199,214,0.3)'; ctx.lineWidth = 1.5;
+    const ym = (y0 + y1) / 2, hh = 0.012;
+    for (let k = -1; k < 4; k++) {
+      const xc = dir > 0 ? x0 + ph + k * sp : x1 - ph - k * sp;
+      for (const yy of [ym - 0.035, ym, ym + 0.035]) {
+        ctx.beginPath();
+        ctx.moveTo(sx(xc - dir * 0.006), sy(yy - hh)); ctx.lineTo(sx(xc), sy(yy)); ctx.lineTo(sx(xc - dir * 0.006), sy(yy + hh));
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function heaterColor(T) {
+    const f = Math.max(0, Math.min(1, (T - 20) / 100));
+    const a = hex('#2a3138'), b = hex('#ff5a28');
+    return `rgb(${a.map((c, i) => Math.round(c + (b[i] - c) * f)).join(',')})`;
+  }
+  function drawHeater(hh, dir, T, name) {
+    const x0 = cellX(hh.i0), x1 = cellX(hh.i1 + 1), y0 = cellY(G.heatJ0 - 1), y1 = cellY(G.heatJ1 + 2);
+    ctx.save();
+    const glow = Math.max(0, Math.min(1, (T - 20) / 100));
+    ctx.shadowColor = `rgba(255,90,40,${0.7 * glow})`; ctx.shadowBlur = 18 * glow;
+    box(x0, y0, x1, y1, heaterColor(T));
+    ctx.restore();
+    box(x0, y0, x1, y1, 'rgba(0,0,0,0)', 'rgba(205,226,238,0.8)');
+    // grille on the outlet face
+    const xf = dir > 0 ? x1 : x0;
+    ctx.strokeStyle = 'rgba(10,14,18,0.85)'; ctx.lineWidth = 1.5;
+    for (let k = 0; k < 5; k++) {
+      const xx = xf - dir * (0.006 + k * 0.006);
+      ctx.beginPath(); ctx.moveTo(sx(xx), sy(y0 + 0.012)); ctx.lineTo(sx(xx), sy(y1 - 0.012)); ctx.stroke();
+    }
+    label(name, (x0 + x1) / 2, y0 - 0.014, 'center', '#c6d2da', 11);
+    label(`${Math.round(T)} °C`, (x0 + x1) / 2, y1 + 0.014, 'center', T > 60 ? '#f3a078' : '#9ec3e6', 11);
+  }
+  function drawPorts() {
+    const ps = sim.ports;
+    const spec = {
+      top: { x: 0.5, y: -0.0031, horiz: true, out: [0, -1] }, bottom: { x: 0.5, y: 0.6031, horiz: true, out: [0, 1] },
+      left: { x: -0.0031, y: 0.1625, horiz: false, out: [-1, 0] }, right: { x: 1.0031, y: 0.1625, horiz: false, out: [1, 0] }
+    };
+    for (const k in spec) {
+      const s = spec[k], state = ps[k];
+      if (state === 'window' || state === 'beamwin') {
+        ctx.fillStyle = 'rgba(159,212,255,0.85)';
+        if (s.horiz) ctx.fillRect(sx(s.x - 0.026), sy(s.y) - 2, 0.052 * sc, 4);
+        else ctx.fillRect(sx(s.x) - 2, sy(s.y - 0.026), 4, 0.052 * sc);
+      }
+      if (state === 'blocked') {
+        ctx.fillStyle = '#56636e';
+        if (s.horiz) ctx.fillRect(sx(s.x - 0.03), sy(s.y + s.out[1] * 0.006) - 3, 0.06 * sc, 6);
+        else ctx.fillRect(sx(s.x + s.out[0] * 0.006) - 3, sy(s.y - 0.03), 6, 0.06 * sc);
+      } else {
+        ctx.strokeStyle = (state === 'beam' || state === 'beamwin') ? 'rgba(232,69,122,0.9)' : state === 'fan' ? '#86c7d6' : state === 'window' ? '#9fd4ff' : '#6cc49a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (s.horiz) { for (const e of [-0.025, 0.025]) { ctx.moveTo(sx(s.x + e), sy(s.y) - 5); ctx.lineTo(sx(s.x + e), sy(s.y) + 5); } }
+        else { for (const e of [-0.025, 0.025]) { ctx.moveTo(sx(s.x) - 5, sy(s.y + e)); ctx.lineTo(sx(s.x) + 5, sy(s.y + e)); } }
+        ctx.stroke();
+      }
+      if (!compact && (state === 'open' || state === 'blocked' || state === 'window' || state === 'beamwin')) {
+        const lx = s.x + s.out[0] * 0.035, ly = s.y + s.out[1] * 0.02;
+        const al = s.horiz ? 'center' : (s.out[0] < 0 ? 'right' : 'left');
+        if (!(k === 'bottom' && sim.params.config === 'long')) label(state === 'beamwin' ? 'window' : state, s.horiz ? s.x + 0.045 : lx, s.horiz ? ly : s.y + 0.035, s.horiz ? 'left' : al, state === 'open' ? '#6cc49a' : state === 'blocked' ? '#7d8a95' : '#9fd4ff', 10);
+      }
+    }
+  }
+  function drawDevices() {
+    const p = sim.params, g = beamGeom();
+    const dev = (x0, y0, x1, y1, title, subtitle, color) => {
+      box(x0, y0, x1, y1, '#16202a', color);
+      const cxm = (x0 + x1) / 2, cym = (y0 + y1) / 2;
+      if (g.vertical) { label(title, x1 + 0.012, compact ? cym : cym - 0.012, 'left', '#dbe4ea', 11); if (!compact) label(subtitle, x1 + 0.012, cym + 0.012, 'left', '#92a2af', 10); }
+      else { label(title, cxm, y1 + 0.016, 'center', '#dbe4ea', 11); if (!compact) label(subtitle, cxm, y1 + 0.038, 'center', '#92a2af', 10); }
+    };
+    if (p.config === 'short') {
+      dev(0.47, 0.625, 0.53, 0.71, 'Laser 795 nm', 'false colour, NIR', BEAM);
+      dev(0.465, -0.125, 0.535, -0.04, 'Wavefront sensor', 'receiver', '#86c7d6');
+    } else {
+      dev(-0.125, 0.135, -0.04, 0.19, 'Laser', '795 nm', BEAM);
+      dev(1.04, 0.13, 1.125, 0.195, 'Wavefront', 'sensor', '#86c7d6');
+      // Taylor fan at the bottom opening
+      const on = sim.ports.bottom === 'fan';
+      box(0.455, 0.612, 0.545, 0.675, on ? '#16202a' : 'rgba(22,32,42,0.6)', on ? '#86c7d6' : '#3a4854');
+      const cxp = sx(0.5), cyp = sy(0.6435), r = 0.022 * sc;
+      ctx.save(); ctx.translate(cxp, cyp); ctx.rotate(on ? sim.time * p.taylor * 40 : 0);
+      ctx.strokeStyle = on ? '#86c7d6' : '#4b5a66'; ctx.lineWidth = 1.5;
+      for (let k = 0; k < 3; k++) { ctx.rotate(2.094); ctx.beginPath(); ctx.ellipse(r * 0.5, 0, r * 0.5, r * 0.22, 0, 0, 6.283); ctx.stroke(); }
+      ctx.restore();
+      label(on ? `Taylor fan · ${p.taylor.toFixed(1)} m/s` : 'Taylor fan · off', 0.56, 0.6435, 'left', on ? '#dbe4ea' : '#7d8a95', 11);
+    }
+  }
+  function drawStreaks() {
+    const uRef = Math.max(1, sim.params.fanL, sim.params.fanR, sim.params.taylor);
+    const k = 0.024 / uRef;
+    ctx.save(); ctx.lineWidth = 1; ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(236,244,248,0.5)';
+    ctx.beginPath();
+    for (let n = 0; n < NP; n++) {
+      const x = px[n], y = py[n];
+      const u = sim.sampleU(x, y), v = sim.sampleV(x, y);
+      const X = sx(x), Y = sy(y);
+      ctx.moveTo(X, Y); ctx.lineTo(X - u * k * sc - 0.3, Y - v * k * sc);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawChamber() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#0c1217'; ctx.fillRect(0, 0, cssW, cssH);
+    // floor
+    ctx.fillStyle = '#10171d'; ctx.fillRect(sx(0), sy(0), sc, 0.6 * sc);
+    fillField();
+    ctx.save();
+    ctx.beginPath(); ctx.rect(sx(-H), sy(-H), (1 + 2 * H) * sc, (0.6 + 2 * H) * sc); ctx.clip();
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.globalAlpha = st.overlay === 'temp' ? 0.92 : 0.95;
+    ctx.drawImage(off, sx(X0), sy(Y0), NX * H * sc, NY * H * sc);
+    ctx.restore();
+    drawBeam();
+    if (st.streaks) drawStreaks();
+    // walls
+    ctx.fillStyle = 'rgba(205,226,238,0.88)'; ctx.fill(wallPath);
+    drawFan(G.fanL, 1, sim.params.fanL);
+    drawFan(G.fanR, -1, sim.params.fanR);
+    drawHeater(G.heatL, 1, sim.params.heatL, 'Heater L');
+    drawHeater(G.heatR, -1, sim.params.heatR, 'Heater R');
+    drawPorts();
+    drawDevices();
+    // labels
+    label('OPEN SECTION', 0.018, 0.03, 'left', '#62717d', 11);
+    label('MIXING REGION', 0.372, 0.585, 'left', '#8b98a3', 11);
+    label('fan →', 0.362, 0.385, 'left', '#86c7d6', 10);
+    label('← fan', 0.638, 0.385, 'right', '#86c7d6', 10);
+    label('vents', -0.018, 0.47, 'center', '#62717d', 10, -Math.PI / 2);
+    label('vents', 1.018, 0.47, 'center', '#62717d', 10, Math.PI / 2);
+    if (!compact) {
+    label('1.00 m', 0.18, 0.632, 'center', '#62717d', 10);
+    label('0.60 m', -0.05, 0.47, 'center', '#62717d', 10, -Math.PI / 2);
+    label('height 0.31 m · openings at mid-height', 1.0, 0.632, 'right', '#62717d', 10);
+    // dimension ticks
+    ctx.strokeStyle = '#34424e'; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(sx(0), sy(0.62)); ctx.lineTo(sx(0.12), sy(0.62)); ctx.moveTo(sx(0.24), sy(0.62)); ctx.lineTo(sx(0.40), sy(0.62));
+    ctx.moveTo(sx(-0.05), sy(0.6)); ctx.lineTo(sx(-0.05), sy(0.52)); ctx.moveTo(sx(-0.05), sy(0.42)); ctx.lineTo(sx(-0.05), sy(0.24));
+    ctx.stroke();
+    }
+    if (st.warm || st.skipUntil > 0) {
+      const msg = st.warm ? 'Warming up: heaters on, fans spinning up…' : 'Skipping ahead…';
+      ctx.font = font(Math.round(13 * fscale), 600); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const w = ctx.measureText(msg).width + 24;
+      ctx.fillStyle = 'rgba(12,18,23,0.85)'; ctx.fillRect(sx(0.5) - w / 2, sy(0.18) - 14, w, 28);
+      ctx.fillStyle = '#dbe4ea'; ctx.fillText(msg, sx(0.5), sy(0.18));
+    }
+  }
+
+  // ---------- receiver ----------
+  const wfs = $('wfs'), wctx = wfs.getContext('2d');
+  const psfc = $('psf'), pctx = psfc.getContext('2d');
+  const offW = document.createElement('canvas'); offW.width = 64; offW.height = 64;
+  const offWc = offW.getContext('2d'), imgW = offWc.createImageData(64, 64);
+  const offP = document.createElement('canvas'); offP.width = 64; offP.height = 64;
+  const offPc = offP.getContext('2d'), imgP = offPc.createImageData(64, 64);
+  let wRange = 0.3;
+  function drawReceiver() {
+    const NA = optics.NA, ph = optics.phase, amp = optics.amp;
+    const D = st.D, W = 1.5 * D, w = D / 2;
+    // colour range follows the expected phase rms (smoothed)
+    const dr = isFinite(st.r0) ? D / st.r0 : 0;
+    const sig = Math.sqrt((st.rmTilt ? 0.134 : 1.03) * Math.pow(Math.max(dr, 1e-3), 5 / 3)) / (2 * Math.PI);
+    const target = Math.max(0.05, Math.min(4, 2.2 * sig));
+    wRange += (target - wRange) * 0.05;
+    const d = imgW.data, L = LUT.phase;
+    for (let m = 0; m < NA; m++) for (let n = 0; n < NA; n++) {
+      const k = m * NA + n, o = k * 4;
+      const x = (n - NA / 2 + 0.5) / NA * W, y = (m - NA / 2 + 0.5) / NA * W;
+      const inside = x * x + y * y <= w * w;
+      const val = ph[k] / (2 * Math.PI) / wRange;
+      const q = Math.max(0, Math.min(255, ((0.5 + 0.5 * val) * 255) | 0)) * 3;
+      const dim = inside ? 1 : 0.25;
+      d[o] = L[q] * dim; d[o + 1] = L[q + 1] * dim; d[o + 2] = L[q + 2] * dim; d[o + 3] = 255;
+    }
+    offWc.putImageData(imgW, 0, 0);
+    const Wp = wfs.width, Hp = wfs.height;
+    wctx.setTransform(1, 0, 0, 1, 0, 0);
+    wctx.imageSmoothingEnabled = true; wctx.drawImage(offW, 0, 0, Wp, Hp);
+    const cx = Wp / 2, cy = Hp / 2, rad = (w / W) * Wp;
+    wctx.strokeStyle = 'rgba(219,228,234,0.55)'; wctx.lineWidth = 1 * dpr;
+    wctx.beginPath(); wctx.arc(cx, cy, rad, 0, 6.283); wctx.stroke();
+    // port clip (Ø 50 mm)
+    if (0.025 < W / 2) { wctx.setLineDash([3 * dpr, 3 * dpr]); wctx.beginPath(); wctx.arc(cx, cy, 0.025 / W * Wp, 0, 6.283); wctx.stroke(); wctx.setLineDash([]); }
+    // Shack-Hartmann slope arrows
+    const nl = 9, cell = NA / nl;
+    const slopes = [];
+    let s2 = 0;
+    for (let a = 0; a < nl; a++) for (let b = 0; b < nl; b++) {
+      const m0 = Math.round(a * cell), m1 = Math.round((a + 1) * cell) - 1, n0 = Math.round(b * cell), n1 = Math.round((b + 1) * cell) - 1;
+      const xc = ((n0 + n1) / 2 - NA / 2 + 0.5) / NA * W, yc = ((m0 + m1) / 2 - NA / 2 + 0.5) / NA * W;
+      if (xc * xc + yc * yc > (0.85 * w) * (0.85 * w)) continue;
+      let gx = 0, gy = 0;
+      for (let m = m0; m <= m1; m++) gx += ph[m * NA + n1] - ph[m * NA + n0];
+      for (let n = n0; n <= n1; n++) gy += ph[m1 * NA + n] - ph[m0 * NA + n];
+      gx /= (m1 - m0 + 1) * (n1 - n0); gy /= (n1 - n0 + 1) * (m1 - m0);
+      slopes.push([xc, yc, gx, gy]); s2 += gx * gx + gy * gy;
+    }
+    const rmsS = Math.sqrt(s2 / Math.max(1, slopes.length)) + 1e-9;
+    const cpx = Wp / nl;
+    wctx.strokeStyle = 'rgba(240,246,250,0.85)'; wctx.fillStyle = 'rgba(240,246,250,0.85)'; wctx.lineWidth = 1.2 * dpr;
+    for (const [xc, yc, gx, gy] of slopes) {
+      const X = cx + xc / W * Wp, Y = cy + yc / W * Hp;
+      const f = 0.32 * cpx / rmsS;
+      let ax = gx * f, ay = gy * f; const L2 = Math.hypot(ax, ay), mx = 0.48 * cpx;
+      if (L2 > mx) { ax *= mx / L2; ay *= mx / L2; }
+      wctx.beginPath(); wctx.arc(X, Y, 1.2 * dpr, 0, 6.283); wctx.fill();
+      wctx.beginPath(); wctx.moveTo(X, Y); wctx.lineTo(X + ax, Y + ay); wctx.stroke();
+    }
+    $('wfsScale').textContent = `${(W * 1e3).toFixed(W < 0.01 ? 1 : 0)} mm wide`;
+    $('wfsRange').textContent = `±${wRange < 0.1 ? wRange.toFixed(3) : wRange.toFixed(2)} waves`;
+
+    // focal spot
+    const CR = optics.CROP, src = st.longExp ? optics.psfLong : optics.psf, dP = imgP.data, LP = LUT.psf;
+    // shown relative to its own peak (the caption gives the peak relative to a turbulence-free spot)
+    let pmax = 1e-9; for (let k = 0; k < CR * CR; k++) if (src[k] > pmax) pmax = src[k];
+    for (let k = 0; k < CR * CR; k++) {
+      const vv = Math.pow(Math.max(0, Math.min(1, src[k] / pmax)), 0.6);
+      const q = Math.max(0, Math.min(255, (vv * 255) | 0)) * 3;
+      dP[k * 4] = LP[q]; dP[k * 4 + 1] = LP[q + 1]; dP[k * 4 + 2] = LP[q + 2]; dP[k * 4 + 3] = 255;
+    }
+    offPc.putImageData(imgP, 0, 0);
+    const Pw = psfc.width, Ph = psfc.height;
+    pctx.setTransform(1, 0, 0, 1, 0, 0);
+    pctx.imageSmoothingEnabled = true; pctx.drawImage(offP, 0, 0, Pw, Ph);
+    const pcx = Pw / 2, pcy = Ph / 2, ppx = Pw / CR;
+    pctx.strokeStyle = 'rgba(134,199,214,0.35)'; pctx.lineWidth = 1 * dpr;
+    pctx.beginPath(); pctx.moveTo(pcx, 0); pctx.lineTo(pcx, Ph); pctx.moveTo(0, pcy); pctx.lineTo(Pw, pcy); pctx.stroke();
+    pctx.setLineDash([3 * dpr, 3 * dpr]); pctx.strokeStyle = 'rgba(219,228,234,0.8)';
+    pctx.beginPath(); pctx.arc(pcx, pcy, 0.637 * 3 * ppx, 0, 6.283); pctx.stroke(); pctx.setLineDash([]);
+    const tr = optics.trail;
+    for (let k = 0; k < tr.length; k++) {
+      const a = (k + 1) / tr.length;
+      pctx.fillStyle = `rgba(134,199,214,${(0.15 + 0.75 * a).toFixed(2)})`;
+      pctx.beginPath(); pctx.arc(pcx + tr[k].x * ppx, pcy + tr[k].y * ppx, (k === tr.length - 1 ? 2.6 : 1.5) * dpr, 0, 6.283); pctx.fill();
+    }
+    const half = CR / 2 / 3; // in lambda/D
+    const urad = half * LAMBDA / D * 1e6;
+    $('psfScale').textContent = `±${urad >= 100 ? urad.toFixed(0) : urad.toFixed(1)} µrad`;
+    $('psfStrehl').textContent = st.longExp ? 'long exposure' : `peak ${optics.strehl.toFixed(2)}× ideal`;
+  }
+
+  // ---------- number formatting ----------
+  const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  function sci(x, dig) {
+    if (!(x > 0) || !isFinite(x)) return '0';
+    const e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+    return `${m.toFixed(dig === undefined ? 1 : dig)}×10${String(e).split('').map(c => SUP[c]).join('')}`;
+  }
+  function fmtLen(m) {
+    if (!isFinite(m)) return '∞';
+    if (m >= 1) return `${m.toFixed(2)} m`;
+    if (m >= 0.1) return `${(m * 100).toFixed(0)} cm`;
+    return `${(m * 1e3).toFixed(m < 0.01 ? 2 : 1)} mm`;
+  }
+
+  function updateMetrics() {
+    const s = st.stats; if (!s) return;
+    const D = st.D, r0 = st.r0, dr = isFinite(r0) ? D / r0 : 0;
+    const tilt = isFinite(r0) ? 0.427 * (LAMBDA / D) * Math.pow(dr, 5 / 6) : 0;
+    const v = Math.abs(s.vperp), ue = Math.sqrt(s.vperp * s.vperp + s.uprime * s.uprime);
+    const tau0 = isFinite(r0) ? 0.314 * r0 / Math.max(ue, 0.02) : Infinity;
+    const regime = dr < 1 ? 'mostly tilt' : dr < 4 ? 'distorted' : 'speckled';
+    const ryt = st.rytov || 0;
+    const rows = [
+      ['Fried parameter r₀', fmtLen(r0), 'hero'],
+      ['D / r₀', `${dr.toFixed(dr < 10 ? 2 : 1)}<span class="pill" style="background:#1d2c35;color:#86c7d6">${regime}</span>`, 'hero'],
+      ['∫C<sub>n</sub>² dz', `${sci(st.intCn2)} m¹ᐟ³`],
+      ['Path-average C<sub>n</sub>²', `${sci(st.intCn2 / s.L)} m⁻²ᐟ³`],
+      ['Rytov variance σ<sub>R</sub>²', `${ryt < 0.01 ? ryt.toFixed(4) : ryt.toFixed(3)} ${ryt < 0.3 ? '(weak)' : ryt < 1 ? '(moderate)' : '(strong)'}`],
+      ['Tip/tilt jitter, 1 axis', `${(tilt * 1e6).toFixed(tilt * 1e6 < 10 ? 1 : 0)} µrad`],
+      ['Crosswind v<sub>⊥</sub>', `${v.toFixed(2)} m/s`],
+      ['Eddy speed u′', `${s.uprime.toFixed(2)} m/s`],
+      ['Coherence time τ₀', isFinite(tau0) ? (tau0 < 0.1 ? `${(tau0 * 1e3).toFixed(1)} ms` : `${tau0.toFixed(2)} s`) : '∞'],
+      ['Wavefront rms', `${optics.rmsWaves.toFixed(3)} waves`],
+      ['Jet temperatures', `${st.jet.L.toFixed(0)} / ${st.jet.R.toFixed(0)} °C`],
+      ['Jet contrast ΔT', `${Math.abs(st.jet.R - st.jet.L).toFixed(0)} K`]
+    ];
+    $('metrics').innerHTML = rows.map(r => `<div class="metric${r[2] ? ' ' + r[2] : ''}"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('');
+  }
+
+  // ---------- charts ----------
+  function chart(id, draw) {
+    const wrap = $(id), c = wrap.querySelector('canvas'), tip = wrap.querySelector('.tip');
+    const o = { c, tip, hover: null, draw };
+    c.addEventListener('mousemove', e => { const r = c.getBoundingClientRect(); o.hover = (e.clientX - r.left) / r.width; o.hy = e.clientY - r.top; o.hx = e.clientX - r.left; });
+    c.addEventListener('mouseleave', () => { o.hover = null; tip.hidden = true; });
+    return o;
+  }
+  const profChart = chart('profChart'), histChart = chart('histChart');
+  function axesFrame(g, W, Hh, pad) {
+    g.strokeStyle = '#243240'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(pad.l, Hh - pad.b + 0.5); g.lineTo(W - pad.r, Hh - pad.b + 0.5); g.stroke();
+  }
+  function drawProfile() {
+    const o = profChart, c = o.c, g = c.getContext('2d'), s = st.stats; if (!s) return;
+    const W = c.width / dpr, Hh = c.height / dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
+    const pad = { l: 44, r: 10, t: 10, b: 22 };
+    const L = s.L, yLo = -12, yHi = -7;
+    const X = z => pad.l + (z / L) * (W - pad.l - pad.r);
+    const Y = q => { const lv = q > 0 ? Math.log10(q) : yLo; return pad.t + (1 - (Math.max(yLo, Math.min(yHi, lv)) - yLo) / (yHi - yLo)) * (Hh - pad.t - pad.b); };
+    // context bands
+    g.font = '10.5px "IBM Plex Sans Condensed", sans-serif'; g.textBaseline = 'top';
+    const band = (z0, z1, txt) => {
+      g.fillStyle = 'rgba(134,199,214,0.06)'; g.fillRect(X(z0), pad.t, X(z1) - X(z0), Hh - pad.t - pad.b);
+      g.fillStyle = '#62717d'; g.textAlign = 'center'; g.fillText(txt, (X(z0) + X(z1)) / 2, pad.t + 2);
+    };
+    if (sim.params.config === 'short') { band(0, 0.6 - 0.3455, 'mixing region'); g.fillStyle = '#62717d'; g.textAlign = 'center'; g.fillText('open section', (X(0.2545) + X(0.6)) / 2, pad.t + 2); }
+    else { band(0.40, 0.60, 'above the gap'); }
+    // grid + y labels
+    g.strokeStyle = '#1c2832'; g.fillStyle = '#62717d'; g.textAlign = 'right'; g.textBaseline = 'middle';
+    for (let e = yLo; e <= yHi; e++) {
+      const yy = Y(Math.pow(10, e)); g.beginPath(); g.moveTo(pad.l, yy + 0.5); g.lineTo(W - pad.r, yy + 0.5); g.stroke();
+      g.fillText('10' + String(e).split('').map(ch => SUP[ch]).join(''), pad.l - 6, yy);
+    }
+    axesFrame(g, W, Hh, pad);
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    const zs = []; for (let z = 0; z <= L + 1e-9; z += (L > 0.7 ? 0.2 : 0.1)) zs.push(z);
+    zs.forEach((z, n) => { g.textAlign = n === zs.length - 1 ? 'right' : 'center'; g.fillText(n === zs.length - 1 ? `${z.toFixed(1)} m` : z.toFixed(1), n === zs.length - 1 ? X(z) + 4 : X(z), Hh - pad.b + 5); });
+    const pr = s.profile;
+    // area + line
+    g.beginPath(); g.moveTo(X(pr[0].z), Y(0));
+    for (const p of pr) g.lineTo(X(p.z), Y(p.cn2));
+    g.lineTo(X(pr[pr.length - 1].z), Y(0)); g.closePath();
+    g.fillStyle = 'rgba(232,69,122,0.16)'; g.fill();
+    g.beginPath(); pr.forEach((p, n) => n ? g.lineTo(X(p.z), Y(p.cn2)) : g.moveTo(X(p.z), Y(p.cn2)));
+    g.strokeStyle = BEAM; g.lineWidth = 2; g.stroke();
+    // hover
+    if (o.hover !== null) {
+      const z = Math.max(0, Math.min(L, (o.hover * W - pad.l) / (W - pad.l - pad.r) * L));
+      let best = pr[0]; for (const p of pr) if (Math.abs(p.z - z) < Math.abs(best.z - z)) best = p;
+      g.strokeStyle = 'rgba(219,228,234,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X(best.z) + 0.5, pad.t); g.lineTo(X(best.z) + 0.5, Hh - pad.b); g.stroke();
+      g.fillStyle = BEAM; g.strokeStyle = '#121a21'; g.lineWidth = 2; g.beginPath(); g.arc(X(best.z), Y(best.cn2), 4, 0, 6.283); g.fill(); g.stroke();
+      o.tip.hidden = false; o.tip.style.left = X(best.z) + 'px'; o.tip.style.top = Y(best.cn2) + 'px';
+      o.tip.innerHTML = `${best.z.toFixed(2)} m · C<sub>n</sub>² ${sci(best.cn2)}<br>air ${best.T.toFixed(1)} °C`;
+    }
+  }
+  function drawHist() {
+    const o = histChart, c = o.c, g = c.getContext('2d'), h = st.hist;
+    const W = c.width / dpr, Hh = c.height / dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
+    if (h.length < 2) return;
+    const pad = { l: 44, r: 44, t: 8, b: 20 };
+    const vals = h.map(p => isFinite(p.r0) ? Math.min(p.r0 * 1e3, 200) : 200);
+    const vmax = Math.max(1, ...vals) * 1.15;
+    const t0 = h[0].t, t1 = h[h.length - 1].t, span = Math.max(1e-3, t1 - t0);
+    const X = t => pad.l + (t - t0) / span * (W - pad.l - pad.r);
+    const Y = v => pad.t + (1 - v / vmax) * (Hh - pad.t - pad.b);
+    g.strokeStyle = '#1c2832'; g.fillStyle = '#62717d'; g.font = '10.5px "IBM Plex Sans Condensed", sans-serif';
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    const raw = vmax / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 5, 10].map(m => m * mag).find(v => v >= raw) || raw;
+    for (let v = 0; v <= vmax; v += step) { const yy = Y(v); g.beginPath(); g.moveTo(pad.l, yy + 0.5); g.lineTo(W - pad.r, yy + 0.5); g.stroke(); g.fillText(`${+v.toPrecision(3)} mm`, pad.l - 6, yy); }
+    g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText(`−${span.toFixed(2)} s`, pad.l, Hh - pad.b + 4);
+    g.textAlign = 'right'; g.fillText('now (simulated time)', W - pad.r, Hh - pad.b + 4);
+    g.beginPath(); g.moveTo(X(h[0].t), Y(0));
+    h.forEach((p, n) => g.lineTo(X(p.t), Y(vals[n])));
+    g.lineTo(X(t1), Y(0)); g.closePath(); g.fillStyle = 'rgba(134,199,214,0.12)'; g.fill();
+    g.beginPath(); h.forEach((p, n) => n ? g.lineTo(X(p.t), Y(vals[n])) : g.moveTo(X(p.t), Y(vals[n])));
+    g.strokeStyle = '#86c7d6'; g.lineWidth = 2; g.stroke();
+    const last = vals[vals.length - 1];
+    g.fillStyle = '#86c7d6'; g.strokeStyle = '#121a21'; g.lineWidth = 2; g.beginPath(); g.arc(X(t1), Y(last), 4, 0, 6.283); g.fill(); g.stroke();
+    g.fillStyle = '#dbe4ea'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.font = '11px "IBM Plex Mono", monospace';
+    g.fillText(`${last.toFixed(1)}`, X(t1) + 7, Y(last));
+    if (o.hover !== null) {
+      const t = t0 + Math.max(0, Math.min(1, (o.hover * W - pad.l) / (W - pad.l - pad.r))) * span;
+      let bi = 0; for (let n = 0; n < h.length; n++) if (Math.abs(h[n].t - t) < Math.abs(h[bi].t - t)) bi = n;
+      g.strokeStyle = 'rgba(219,228,234,0.5)'; g.lineWidth = 1; g.beginPath(); g.moveTo(X(h[bi].t) + 0.5, pad.t); g.lineTo(X(h[bi].t) + 0.5, Hh - pad.b); g.stroke();
+      o.tip.hidden = false; o.tip.style.left = X(h[bi].t) + 'px'; o.tip.style.top = Y(vals[bi]) + 'px';
+      o.tip.textContent = `r₀ ${vals[bi].toFixed(2)} mm · ${(h[bi].t - t1).toFixed(2)} s`;
+    }
+  }
+
+  // ---------- legend ----------
+  const legC = $('legend'), legCtx = legC.getContext('2d');
+  function drawLegend() {
+    const ov = st.overlay, L = LUT[ov];
+    const g = legCtx.createImageData(180, 1);
+    for (let i = 0; i < 180; i++) { const k = Math.round(i / 179 * 255) * 3; g.data[i * 4] = L[k]; g.data[i * 4 + 1] = L[k + 1]; g.data[i * 4 + 2] = L[k + 2]; g.data[i * 4 + 3] = 255; }
+    for (let y = 0; y < 10; y++) legCtx.putImageData(g, 0, y);
+    let lab, ticks;
+    const uMax = 1.25 * Math.max(0.5, sim.params.fanL, sim.params.fanR, sim.params.taylor);
+    if (ov === 'temp') { lab = 'Air temperature'; ticks = [`${T_AMB} °C`, `${((T_AMB + st.tHi) / 2).toFixed(0)}`, `${st.tHi.toFixed(0)} °C`]; }
+    else if (ov === 'speed') { lab = 'Wind speed'; ticks = ['0', `${(uMax / 2).toFixed(1)}`, `${uMax.toFixed(1)} m/s`]; }
+    else if (ov === 'vort') { lab = 'Swirl'; ticks = ['clockwise', 'none', 'counter-cw']; }
+    else { lab = 'Local C<sub>n</sub>²'; ticks = ['10⁻¹²', '10⁻¹⁰', '10⁻⁸ m⁻²ᐟ³']; }
+    $('legLabel').innerHTML = lab;
+    $('legTicks').innerHTML = ticks.map(t => `<span>${t}</span>`).join('');
+  }
+
+  // ---------- UI wiring ----------
+  function setPct(el) {
+    const min = +el.min, max = +el.max, v = +el.value;
+    el.style.setProperty('--pct', `${((v - min) / (max - min)) * 100}%`);
+  }
+  function updateUI() {
+    const p = sim.params, cfg = p.config;
+    document.querySelectorAll('#cfgSeg button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.cfg === cfg)));
+    $('pathBadge').textContent = cfg === 'short' ? 'short path · 0.60 m' : 'long path · 1.00 m';
+    const ps = sim.portState();
+    const names = { beam: 'beam', beamwin: 'beam · window', open: 'open', window: 'window', blocked: 'blocked', fan: 'Taylor fan' };
+    document.querySelectorAll('.port').forEach(b => {
+      const k = b.dataset.port, s = ps[k];
+      b.dataset.state = s; b.lastElementChild.textContent = names[s];
+      b.disabled = s === 'fan';
+      b.setAttribute('aria-label', `${b.firstElementChild.textContent} opening: ${names[s]}`);
+    });
+    const tg = $('taylorGroup'), long = cfg === 'long';
+    tg.setAttribute('aria-disabled', String(!long)); $('taylor').disabled = !long;
+    $('taylorNote').textContent = long ? 'Blows room air in through the bottom opening, across the beam, so the turbulence drifts past it.' : 'Long path only: on the short path the bottom opening carries the beam.';
+    $('fanLOut').innerHTML = `<b>${Math.round(p.fanL / FAN_MAX * 100)} %</b> · ${p.fanL.toFixed(1)} m/s`;
+    $('fanROut').innerHTML = `<b>${Math.round(p.fanR / FAN_MAX * 100)} %</b> · ${p.fanR.toFixed(1)} m/s`;
+    $('heatLOut').innerHTML = `<b>${p.heatL} °C</b> · jet ${st.jet.L.toFixed(0)} °C`;
+    $('heatROut').innerHTML = `<b>${p.heatR} °C</b> · jet ${st.jet.R.toFixed(0)} °C`;
+    $('taylorOut').innerHTML = long ? `<b>${p.taylor.toFixed(1)} m/s</b>` : 'n/a';
+    $('beamDOut').innerHTML = `<b>${(st.D * 1e3).toFixed(st.D < 0.01 ? 1 : 0)} mm</b>`;
+    $('speedOut').innerHTML = `<b>${SPEED_LABEL[st.speedIdx]}×</b> real time`;
+    $('calibOut').innerHTML = `<b>×${p.calib < 1 ? p.calib.toFixed(2) : p.calib.toFixed(1)}</b>`;
+    document.querySelectorAll('input[type=range]').forEach(setPct);
+    document.querySelectorAll('.chip[data-ov]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ov === st.overlay)));
+    $('playBtn').textContent = st.paused ? 'Play' : 'Pause';
+    $('playBtn').setAttribute('aria-label', st.paused ? 'Play' : 'Pause');
+    drawLegend();
+  }
+  function bind() {
+    document.querySelectorAll('#cfgSeg button').forEach(b => b.addEventListener('click', () => applyConfig(b.dataset.cfg)));
+    document.querySelectorAll('.chip[data-ov]').forEach(b => b.addEventListener('click', () => { st.overlay = b.dataset.ov; updateUI(); }));
+    document.querySelectorAll('.port').forEach(b => b.addEventListener('click', () => togglePort(b.dataset.port)));
+    const fanL = $('fanL'), fanR = $('fanR');
+    fanL.addEventListener('input', () => { sim.params.fanL = fanL.value / 100 * FAN_MAX; if (st.link) { fanR.value = fanL.value; sim.params.fanR = sim.params.fanL; } updateUI(); });
+    fanR.addEventListener('input', () => { sim.params.fanR = fanR.value / 100 * FAN_MAX; if (st.link) { fanL.value = fanR.value; sim.params.fanL = sim.params.fanR; } updateUI(); });
+    $('linkFans').addEventListener('change', e => { st.link = e.target.checked; if (st.link) { fanR.value = fanL.value; sim.params.fanR = sim.params.fanL; updateUI(); } });
+    $('heatL').addEventListener('input', e => { sim.params.heatL = +e.target.value; updateUI(); });
+    $('heatR').addEventListener('input', e => { sim.params.heatR = +e.target.value; updateUI(); });
+    $('taylor').addEventListener('input', e => {
+      const was = sim.portState().bottom;
+      sim.params.taylor = e.target.value / 10;
+      const now = sim.portState().bottom;
+      if (was !== now) { sim.build(); buildWallPath(); }
+      updateUI();
+    });
+    $('beamD').addEventListener('input', e => { st.D = 1e-3 * Math.pow(45, e.target.value / 1000); optics.trail.length = 0; updateUI(); });
+    $('rmTilt').addEventListener('change', e => { st.rmTilt = e.target.checked; optics.trail.length = 0; });
+    $('longExp').addEventListener('change', e => { st.longExp = e.target.checked; optics.psfLong.fill(0); });
+    $('speed').addEventListener('input', e => { st.speedIdx = +e.target.value; updateUI(); });
+    $('calib').addEventListener('input', e => { sim.params.calib = Math.pow(10, e.target.value / 100); updateUI(); });
+    $('streaks').addEventListener('change', e => { st.streaks = e.target.checked; });
+    $('playBtn').addEventListener('click', () => { st.paused = !st.paused; updateUI(); });
+    $('resetBtn').addEventListener('click', () => {
+      sim.reset(); for (let k = 0; k < NP; k++) spawn(k, true);
+      st.hist.length = 0; optics.trail.length = 0; optics.psfLong.fill(0); st.intCn2 = 0; st.skipUntil = -1; st.warm = false;
+    });
+    $('skipBtn').addEventListener('click', () => { st.skipUntil = sim.time + 1.0; });
+    // chamber hover + port clicks
+    const tip = $('tip');
+    const toWorld = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / sc + WX0, y: (e.clientY - r.top) / sc + WY0, px: e.clientX - r.left, py: e.clientY - r.top }; };
+    const portAt = w => {
+      const P = { top: [0.5, 0], bottom: [0.5, 0.6], left: [0, 0.1625], right: [1, 0.1625] };
+      for (const k in P) if (Math.hypot(w.x - P[k][0], w.y - P[k][1]) < 0.045) return k;
+      return null;
+    };
+    cv.addEventListener('mousemove', e => {
+      const w = toWorld(e); st.hover = w;
+      const k = portAt(w), ps = sim.portState();
+      cv.style.cursor = k && ps[k] !== 'fan' ? 'pointer' : 'crosshair';
+      if (w.x < 0 || w.x > 1 || w.y < 0 || w.y > 0.6) { tip.hidden = true; return; }
+      const i = Math.floor((w.x - X0) / H), j = Math.floor((w.y - Y0) / H), c = j * NX + i;
+      if (sim.type[c] !== FLUID) { tip.hidden = true; return; }
+      const u = sim.sampleU(w.x, w.y), v = sim.sampleV(w.x, w.y);
+      tip.hidden = false;
+      tip.style.left = Math.min(w.px, cssW - 190) + 'px'; tip.style.top = w.py + 'px';
+      tip.innerHTML = `${sim.T[c].toFixed(1)} °C · ${Math.hypot(u, v).toFixed(2)} m/s<br>C<sub>n</sub>² ${sci(sim.cn2[c])} m⁻²ᐟ³`;
+    });
+    cv.addEventListener('mouseleave', () => { tip.hidden = true; st.hover = null; });
+    cv.addEventListener('click', e => { const k = portAt(toWorld(e)); if (k) togglePort(k); });
+    window.addEventListener('resize', resize);
+  }
+
+  // ---------- main loop ----------
+  let last = 0;
+  function stepAll(dt) {
+    sim.step(dt);
+    moveTracers(dt);
+    // smoothed optical path integral (time constant 0.1 s of simulated time)
+    sim.computeCn2();
+    const s = sim.pathStats(st.D);
+    const a = Math.min(1, dt / 0.1);
+    st.intCn2 += (s.intCn2 - st.intCn2) * a;
+    st.rytov = (st.rytov || 0) + (s.rytov - (st.rytov || 0)) * a;
+    st.stats = s;
+    const k2 = Math.pow(2 * Math.PI / LAMBDA, 2);
+    st.r0 = st.intCn2 > 0 ? Math.pow(0.423 * k2 * st.intCn2, -0.6) : Infinity;
+    const tBoil = optics.L0 / Math.max(0.05, s.uprime);
+    optics.advance(dt, s.vperp, tBoil);
+    const jt = sim.jetTemps(); const b = Math.min(1, dt / 0.2);
+    st.jet.L += (jt.L - st.jet.L) * b; st.jet.R += (jt.R - st.jet.R) * b;
+    const hiTarget = Math.max(T_AMB + 8, Math.max(st.jet.L, st.jet.R) + 6);
+    st.tHi += (hiTarget - st.tHi) * Math.min(1, dt / 0.2);
+  }
+  function frame(ts) {
+    const dtReal = last ? Math.min(0.05, (ts - last) / 1000) : 0.016; last = ts;
+    const dtMax = Math.min(0.004, 1.5 * H / sim.maxSpeed());
+    if (st.warm) {
+      for (let n = 0; n < 4; n++) stepAll(dtMax);
+      if (sim.time >= st.warmUntil) { st.warm = false; if (reduceMotion) { st.paused = true; updateUI(); } }
+    } else if (st.skipUntil > 0) {
+      for (let n = 0; n < 5; n++) stepAll(dtMax);
+      if (sim.time >= st.skipUntil) st.skipUntil = -1;
+    } else if (!st.paused) {
+      const adv = dtReal * SPEEDS[st.speedIdx];
+      const n = Math.min(3, Math.max(1, Math.ceil(adv / dtMax)));
+      const dt = Math.min(dtMax, adv / n);
+      for (let k = 0; k < n; k++) stepAll(dt);
+    }
+    if (!st.stats) { sim.computeCn2(); st.stats = sim.pathStats(st.D); }
+    optics.compute(st.D, st.r0, st.rmTilt, st.longExp);
+    if (!st.paused && !st.warm && st.frame % 2 === 0) { st.hist.push({ t: sim.time, r0: st.r0 }); if (st.hist.length > 300) st.hist.shift(); }
+    drawChamber();
+    drawReceiver();
+    if (st.frame % 4 === 0) { drawProfile(); drawHist(); }
+    if (st.frame % 8 === 0) {
+      updateMetrics();
+      $('clock').textContent = `t = ${sim.time.toFixed(2)} s simulated · ${SPEED_LABEL[st.speedIdx]}× real time${st.paused ? ' · paused' : ''}`;
+      $('heatLOut').innerHTML = `<b>${sim.params.heatL} °C</b> · jet ${st.jet.L.toFixed(0)} °C`;
+      $('heatROut').innerHTML = `<b>${sim.params.heatR} °C</b> · jet ${st.jet.R.toFixed(0)} °C`;
+      $('profNote').textContent = 'distance from the laser';
+      drawLegend();
+      $('histNote').textContent = `beam Ø ${(st.D * 1e3).toFixed(st.D < 0.01 ? 1 : 0)} mm`;
+    }
+    st.frame++;
+    requestAnimationFrame(frame);
+  }
+
+  // init
+  $('beamD').value = String(Math.round(1000 * Math.log(10) / Math.log(45)));
+  $('speed').value = String(st.speedIdx);
+  bind();
+  applyConfig('short');
+  resize();
+  updateUI();
+  requestAnimationFrame(frame);
+  window.__chamber = { sim, optics, st };
+})();
+
+</script>
+</body>
+</html>
